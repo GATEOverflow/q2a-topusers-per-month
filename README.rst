@@ -10,9 +10,9 @@ This is a plugin for **Question2Answer** that displays the best users of the cur
 Features
 --------
 - displays a widget that holds the best users of the current month regarding their stored userpoints
-- provides a page for showing best users of previous months
-- for this the plugin creates a table "qa_userscores" in your database
-- you need to setup a cronjob for file "cronjob.php" that is called the first day of each month, so it can store the monthly userscores
+- provides a page for showing best users of previous months, access-URL ``your-q2a-installation.com/bestusers``
+- the plugin creates a table "qa_userscores" in your database to store monthly userpoints
+- you need to setup a cronjob for file "cronjob.php" that is called the first day of each month, so that monthly userscores get stored
 
 ------------
 Installation
