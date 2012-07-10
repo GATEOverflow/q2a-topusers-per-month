@@ -3,8 +3,8 @@
 	Plugin Name: Best Users per Month
 	Plugin URI: https://github.com/echteinfachtv/q2a-best-users-per-month
 	Plugin Description: Displays the best users (with most points) of the current month in a widget and on a separate page
-	Plugin Version: 1.0
-	Plugin Date: 2012-07-07
+	Plugin Version: 1.1
+	Plugin Date: 2012-07-10
 	Plugin Author: echteinfachtv
 	Plugin Author URI: http://www.echteinfach.tv/
 	Plugin License: GPLv3
@@ -39,6 +39,9 @@ qa_register_plugin_module('page', 'qa-best-users-per-month-page.php', 'qa_best_u
 
 // language file
 qa_register_plugin_phrases('qa-best-users-per-month-lang.php', 'qa_best_users_lang');
+
+// change default users page, add subnavigation "best users"
+qa_register_plugin_layer('qa-best-users-per-month-layer.php', 'Add Subnav to Page Layer');
 
 
 

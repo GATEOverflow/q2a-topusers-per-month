@@ -56,9 +56,6 @@
 			/* start */
 			$qa_content=qa_content_prepare();
 
-			// add sub navigation
-			// $qa_content['navigation']['sub']=qa_users_sub_navigation();
-			
 			$qa_content['title'] = $lang_page_title; // list title
 
 			// counter for custom html output
