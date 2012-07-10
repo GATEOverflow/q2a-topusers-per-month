@@ -26,7 +26,7 @@ Installation
 #. Create the database table: Use your browser and navigate to the plugin folder, **run file:** ``/qa-plugin/best-users-per-month/create_table_qa_userscores.php``
 #. Navigate to your site, go to **Admin -> Plugins** on your q2a install. Check if the plugin "Best Users per Month" is listed there.
 #. Then go to **Admin >Layout >Available widgets**, and add the widget "Best Users per Month", set its position to: Side panel - Below sidebar box
-#. Setup a **cronjob** for file ``qa-plugin/best-users-per-month/cronjob/cronjob.php``, and call it the first day of each month (it stores the monthly userpoints into table qa_userscores)
+#. Setup a cronjob_ for file ``qa-plugin/best-users-per-month/cronjob/cronjob.php``, and call it the first day of each month (it stores the monthly userpoints into table qa_userscores)
 #. Run cronjob.php once (this will save all recent userpoints as userscores. Please do not wonder: All users will start with 0 points)
 
 .. _Question2Answer: http://www.question2answer.org/install.php
