@@ -2,6 +2,22 @@
 
 	class qa_best_users_per_month_page {
 		
+		// initialize db-table 'userscores' if it does not exist yet
+		function init_queries($tableslc) {
+			$tablename=qa_db_add_table_prefix('userscores');
+			
+			if(!in_array($tablename, $tableslc)) {
+				return "CREATE TABLE IF NOT EXISTS `".$tablename."` (
+				  `date` date NOT NULL,
+				  `userid` int(10) unsigned NOT NULL,
+				  `points` int(11) NOT NULL DEFAULT '0',
+				  KEY `userid` (`userid`),
+				  KEY `date` (`date`)
+				)
+				";
+			}
+		}
+		
 		var $directory;
 		var $urltoroot;
 		
@@ -40,7 +56,7 @@
 			$maxusers = 20; 			// max users to display 
 			$adminID = 1;				// if you want the admin not considered in the userpoints list, define his id here (set 0 if admin should be in)
 			$showReward = true; 		// false to hide rewards
-			$creditDeveloper = true;	// leave this true if you like this plugin, it sets a hidden link to my q2a-forum from the page 'bestusers' only
+			$creditDeveloper = true;	// leave this true if you like this plugin, it sets one hidden link to my q2a-forum from the best-user-page only
 			
 			
 			/* TRANSFER LANGUAGE STRINGS */
@@ -49,31 +65,36 @@
 			$lang_best_users = qa_lang_html('qa_best_users_lang/best_users');
 			$lang_points = qa_lang_html('qa_best_users_lang/points');
 			
-
-			$showRewardOnTop = '<p style="font-size:14px;width:650px;margin-left:2px;line-height:140%;">' .qa_lang_html('qa_best_users_lang/rewardline_onpage') . "</p>";
+			// keep for EETV:
+			$showRewardOnTop = '<p style="font-size:14px;width:650px;margin-left:2px;line-height:140%;">Monatliche Pr&auml;mien: 1. Platz: <b>20 Euro</b> | 2. Platz: <b>10 Euro</b> </p>';
+			// * uncomment for plugin release:
+			// $showRewardOnTop = '<p style="font-size:14px;width:650px;margin-left:2px;line-height:140%;">' .qa_lang_html('qa_best_users_lang/rewardline_onpage') . "</p>";
 			
 			
 			/* start */
 			$qa_content=qa_content_prepare();
 
+			// add sub navigation (remove for plugin release)
+			// $qa_content['navigation']['sub']=qa_users_sub_navigation();
+			
 			$qa_content['title'] = $lang_page_title; // list title
 
 			// counter for custom html output
 			$c = 2;
 			
 			
+			// * uncomment for plugin release:
 			// get first date of dropdown list (e.g. 03/2012)
-			$firstListDate = '2012-04-01';
-			// Note: for better performance you can set the $firstListDate above manually 
-			// set it to your first record date in table qa_userscores (probably date of installation)...
-			// ... and comment out the following lines:
+			// Note: for better performance set the $firstListDate by hand to your first date in qa_userscores (probably date of installation)
+			$firstListDate = '2012-04-01'; // eetv: do not show February as gmf was founded in March
+			// ... and comment out the following lines: 
+			/** 
 			$queryFirstDate = qa_db_query_sub("SELECT `date` FROM `qa_userscores` ORDER BY `date` ASC LIMIT 1;"); 
 			while ( ($row = qa_db_read_one_assoc($queryFirstDate,true)) !== null ) {
 				$firstListDate = $row['date'];
 				break;
 			}
-			/**/
-			
+			**/
 			
 			// last entry of dropdown list
 			// -1 month, to also show the "first point interval" from all 0 userscores to all first saved userscores

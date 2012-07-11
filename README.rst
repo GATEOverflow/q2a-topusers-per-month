@@ -15,6 +15,12 @@ Features
 - you need to setup a cronjob for file "cronjob.php" that is called the first day of each month, so that monthly userscores get stored
 
 ------------
+Example
+------------
+This plugin is used at Gute-Mathe-Fragen.de_ which is a mathematics forum. See also screenshot in the plugin files. 
+.. _Gute-Mathe-Fragen.de: http://www.gute-mathe-fragen.de
+
+------------
 Installation
 ------------
 #. Install Question2Answer_
@@ -23,8 +29,7 @@ Installation
 #. Change language strings in file **qa-best-users-per-month-lang.php**
 #. Optional: Change settings in file qa-best-users-per-month-widget.php and qa-best-users-per-month-page.php
 #. Upload the files to a subfolder called ``best-users-per-month`` inside the ``qa-plugins`` folder of your Q2A installation.
-#. Create the database table: Use your browser and navigate to the plugin folder, **run file:** ``/qa-plugin/best-users-per-month/create_table_qa_userscores.php``
-#. Navigate to your site, go to **Admin -> Plugins** on your q2a install. Check if the plugin "Best Users per Month" is listed there.
+#. Navigate to your site, go to **Admin -> Plugins** on your q2a install. Check if plugin "Best Users per Month" is listed. This will automatically install table qa_userscores.
 #. Then go to **Admin >Layout >Available widgets**, and add the widget "Best Users per Month", set its position to: Side panel - Below sidebar box
 #. Setup a cronjob_ for file ``qa-plugin/best-users-per-month/cronjob/cronjob.php``, and call it the first day of each month (it stores the monthly userpoints into table qa_userscores)
 #. Run cronjob.php once (this will save all recent userpoints as userscores. Please do not wonder: All users will start with 0 points)
@@ -50,7 +55,7 @@ All code herein is OpenSource_. Feel free to build upon it and share with the wo
 .. _OpenSource: http://www.gnu.org/licenses/gpl.html
 
 ---------
-About q2A
+About q2a
 ---------
 Question2Answer is a free and open source platform for Q&A sites. For more information, visit:
 
@@ -61,7 +66,7 @@ Final Note
 ---------
 If you use the plugin:
 #. Consider joining the Question2Answer-Forum_, answer some questions or write your own plugin!
-#. You can use the code of this plugin to learn about q2a-plugins. It is commented.
+#. You can use the code of this plugin to learn more about q2a-plugins. It is commented code.
 #. Thanks!
 
 .. _Question2Answer-Forum: http://www.question2answer.org/qa/
