@@ -17,7 +17,7 @@ Features
 ------------
 Example
 ------------
-This plugin is used at www.gute-mathe-fragen.de which a q2a-forum for mathematics. See also screenshot in the plugin files.
+This plugin is used at www.gute-mathe-fragen.de (q2a-forum for mathematics). See also screenshot in the plugin files.
 
 ------------
 Installation
@@ -31,7 +31,7 @@ Installation
 #. Navigate to your site, go to **Admin -> Plugins** on your q2a install. Check if plugin "Best Users per Month" is listed. This will automatically install the table qa_userscores.
 #. Then go to **Admin >Layout >Available widgets**, and add the widget "Best Users per Month", set its position to: Side panel - Below sidebar box
 #. Setup a cronjob_ for file ``qa-plugin/best-users-per-month/cronjob/cronjob.php``, and call it the first day of each month (it stores the monthly userpoints into table qa_userscores)
-#. Run **cronjob.php** once. This will save all recent userpoints as userscores. Do not wonder: All userscores for this month will start with 0 points.
+#. Run **cronjob.php** once. This will save all recent userpoints as userscores. Do not wonder: Afterwards all userscores will start with 0 points.
 
 .. _Question2Answer: http://www.question2answer.org/install.php
 .. _github: https://github.com/echteinfachtv/q2a-best-users-per-month
