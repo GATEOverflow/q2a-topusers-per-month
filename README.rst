@@ -17,7 +17,7 @@ Features
 ------------
 Example
 ------------
-This plugin is used at Ghttp://www.gute-mathe-fragen.de which is a mathematics forum. See also screenshot in the plugin files.
+This plugin is used at www.gute-mathe-fragen.de which a q2a-forum for mathematics. See also screenshot in the plugin files.
 
 ------------
 Installation
