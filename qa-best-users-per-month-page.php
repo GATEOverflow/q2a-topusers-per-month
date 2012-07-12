@@ -65,10 +65,8 @@
 			$lang_best_users = qa_lang_html('qa_best_users_lang/best_users');
 			$lang_points = qa_lang_html('qa_best_users_lang/points');
 			
-			// keep for EETV:
-			$showRewardOnTop = '<p style="font-size:14px;width:650px;margin-left:2px;line-height:140%;">Monatliche Pr&auml;mien: 1. Platz: <b>20 Euro</b> | 2. Platz: <b>10 Euro</b> </p>';
-			// * uncomment for plugin release:
-			// $showRewardOnTop = '<p style="font-size:14px;width:650px;margin-left:2px;line-height:140%;">' .qa_lang_html('qa_best_users_lang/rewardline_onpage') . "</p>";
+			
+			$showRewardOnTop = '<p style="font-size:14px;width:650px;margin-left:2px;line-height:140%;">' .qa_lang_html('qa_best_users_lang/rewardline_onpage') . "</p>";
 			
 			
 			/* start */
