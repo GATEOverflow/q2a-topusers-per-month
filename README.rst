@@ -13,6 +13,7 @@ Features
 - provides a page for showing best users of previous months, access-URL ``your-q2a-installation.com/bestusers``
 - the plugin creates a table "qa_userscores" in your database to store monthly userpoints
 - you need to setup a cronjob for file "cronjob.php" that is called the first day of each month, so that monthly userscores get stored
+- Before installing the plugin, please think about your point system (>Admin >Points). The points should not change over time, as the plugin stores recent userpoints each month. If you change userpoints later on, the userscores shown by the plugin could vary a lot.
 
 ------------
 Example
@@ -64,8 +65,8 @@ http://www.question2answer.org/
 Final Note
 ---------
 If you use the plugin:
-#. Consider joining the Question2Answer-Forum_, answer some questions or write your own plugin!
-#. You can use the code of this plugin to learn more about q2a-plugins. It is commented code.
-#. Thanks!
+- Consider joining the Question2Answer-Forum_, answer some questions or write your own plugin!
+- You can use the code of this plugin to learn more about q2a-plugins. It is commented code.
+- Thanks!
 
 .. _Question2Answer-Forum: http://www.question2answer.org/qa/
