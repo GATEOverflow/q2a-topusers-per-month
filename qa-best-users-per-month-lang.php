@@ -39,6 +39,9 @@
 		'page_title' => 'Beste Mitglieder je Monat (Top 20)', // best users of each month (top 20)
 		'choose_month' => 'Monat wählen:', 
 		'rewardline_onpage' => 'Monatliche Prämien: 1. Platz: 20 Euro | 2. Platz: 10 Euro', // tell your users about monthly rewards/premiums
+		
+		// subnavigation on all users page
+		'subnav_title' => 'Monatsbeste', // best users of the month
 	);
 	
 
