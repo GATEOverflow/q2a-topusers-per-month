@@ -83,12 +83,10 @@
 			$c = 2;
 			
 			
-			// * uncomment for plugin release:
 			// get first date of dropdown list (e.g. 03/2012)
 			// Note: for better performance set the $firstListDate by hand to your first date in qa_userscores (probably date of installation)
-			// $firstListDate = '2012-04-01'; // eetv: do not show February as gmf was founded in March
-			// ... and comment out the following lines: 
-			 
+			$firstListDate = '2012-04-01';
+			// ... and comment out the following 5 lines: 
 			$queryFirstDate = qa_db_query_sub("SELECT `date` FROM `qa_userscores` ORDER BY `date` ASC LIMIT 1;"); 
 			while ( ($row = qa_db_read_one_assoc($queryFirstDate,true)) !== null ) {
 				$firstListDate = $row['date'];
