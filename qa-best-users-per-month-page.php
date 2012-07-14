@@ -85,7 +85,7 @@
 			// Note: for better performance set the $firstListDate by hand to your first date in qa_userscores (probably date of installation)
 			$firstListDate = '2012-04-01';
 			// ... and comment out the following 5 lines: 
-			$queryFirstDate = qa_db_query_sub("SELECT `date` FROM `qa_userscores` ORDER BY `date` ASC LIMIT 1;"); 
+			$queryFirstDate = qa_db_query_sub("SELECT `date` FROM `^userscores` ORDER BY `date` ASC LIMIT 1;"); 
 			while ( ($row = qa_db_read_one_assoc($queryFirstDate,true)) !== null ) {
 				$firstListDate = $row['date'];
 				break;
@@ -173,13 +173,13 @@
 			if($chosenMonth == date("Y-m-01") ) {
 				// calculate userscores from recent month
 				$queryRecentScores = qa_db_query_sub("
-										SELECT qa_userpoints.userid, qa_userpoints.points - COALESCE(qa_userscores.points,0) AS mpoints 
-										FROM `qa_userpoints`
-										LEFT JOIN `qa_userscores` on qa_userpoints.userid=qa_userscores.userid 
-											AND YEAR(qa_userscores.date) = YEAR(CURDATE()) 
-											AND MONTH(qa_userscores.date) = MONTH(CURDATE())
-										WHERE qa_userpoints.userid != ".$adminID."
-										ORDER BY mpoints DESC, qa_userpoints.userid DESC;");
+										SELECT ^userpoints.userid, ^userpoints.points - COALESCE(^userscores.points,0) AS mpoints 
+										FROM `^userpoints`
+										LEFT JOIN `^userscores` on ^userpoints.userid=^userscores.userid 
+											AND YEAR(^userscores.date) = YEAR(CURDATE()) 
+											AND MONTH(^userscores.date) = MONTH(CURDATE())
+										WHERE ^userpoints.userid != ".$adminID."
+										ORDER BY mpoints DESC, ^userpoints.userid DESC;");
 				// thanks srini.venigalla for helping me with advanced mysql
 				// http://stackoverflow.com/questions/11085202/calculate-monthly-userscores-between-two-tables-using-mysql
 			}

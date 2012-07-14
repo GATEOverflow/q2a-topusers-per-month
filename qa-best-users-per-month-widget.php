@@ -76,13 +76,13 @@ class qa_best_users_per_month_widget {
 		
 		// compare userscores from last month to userpoints now (this query is considering new users that do not exist in qa_userscores) 
 		// as we order by mpoints the query returns best users first, and we do not need to sort by php: arsort($scores)
-		$queryRecentScores = qa_db_query_sub("SELECT qa_userpoints.userid, qa_userpoints.points - COALESCE(qa_userscores.points,0) AS mpoints 
-								FROM `qa_userpoints`
-								LEFT JOIN `qa_userscores` on qa_userpoints.userid=qa_userscores.userid 
-									AND YEAR(qa_userscores.date) = YEAR(CURDATE()) 
-									AND MONTH(qa_userscores.date) = MONTH(CURDATE())
-								WHERE qa_userpoints.userid != ".$adminID."
-								ORDER BY mpoints DESC, qa_userpoints.userid DESC;");
+		$queryRecentScores = qa_db_query_sub("SELECT ^userpoints.userid, ^userpoints.points - COALESCE(^userscores.points,0) AS mpoints 
+								FROM `^userpoints`
+								LEFT JOIN `^userscores` on ^userpoints.userid=^userscores.userid 
+									AND YEAR(^userscores.date) = YEAR(CURDATE()) 
+									AND MONTH(^userscores.date) = MONTH(CURDATE())
+								WHERE ^userpoints.userid != ".$adminID."
+								ORDER BY mpoints DESC, ^userpoints.userid DESC;");
 			// thanks srini.venigalla for helping me with advanced mysql
 			// http://stackoverflow.com/questions/11085202/calculate-monthly-userscores-between-two-tables-using-mysql
 
