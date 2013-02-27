@@ -140,7 +140,7 @@ class qa_best_users_per_month_widget {
 		*/
 		$monthName = date('m/Y'); // 2 digit month and 4 digit year
 		
-		$themeobject->output('<div style="font-size:14px;margin-bottom:18px;"><b>'.$langActUsers.'</b> <span style="font-size:12px;">'.$monthName.'</span></div>'); 
+		$themeobject->output('<div style="font-size:14px;margin-bottom:18px;"><a style="font-weight:bold;" href="'.qa_opt('site_url').'bestusers">'.$langActUsers.'</a> <span style="font-size:12px;">'.$monthName.'</span></div>'); 
 		$themeobject->output( $bestusers );
 		
 		// display reward info
