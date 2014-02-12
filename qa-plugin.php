@@ -3,10 +3,10 @@
 	Plugin Name: Best Users per Month
 	Plugin URI: https://github.com/echteinfachtv/q2a-best-users-per-month
 	Plugin Description: Displays the best users (with most points) of the current month in a widget and on a separate page
-	Plugin Version: 1.1
+	Plugin Version: 1.2
 	Plugin Date: 2012-07-10
-	Plugin Author: echteinfachtv
-	Plugin Author URI: http://www.echteinfach.tv/
+	Plugin Author: q2apro.com
+	Plugin Author URI: http://www.q2apro.com/
 	Plugin License: GPLv3
 	Plugin Minimum Question2Answer Version: 1.5
 	Plugin Update Check URI: https://raw.github.com/echteinfachtv/q2a-best-users-per-month/master/qa-plugin.php
