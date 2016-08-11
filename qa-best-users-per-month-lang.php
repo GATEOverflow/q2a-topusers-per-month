@@ -28,20 +28,20 @@
 	
 	return array(
 		// widget + page
-		'best_users' => 'Klügste Köpfe',			// your language string for 'best users'
-		'points' => 'Punkte',						// your language string for 'points'
-		'rewardline_widget' => 'Prämien je Monat', 	// tell your users about monthly rewards/premiums
-		'reward_1' => 'Platz 1: 20 Euro', 			// this is for the 1st winner
-		'reward_2' => 'Platz 2: 10 Euro',			// this is for the 2nd winner
-		'reward_title' => 'Jeden Monat erhalten die besten Mitglieder eine Prämie!', // the mousetip when mouse is over reward field: <p class="rewardlist" title="x">...</p>
+		'best_users' => 'Top Users',			// your language string for 'best users'
+		'points' => 'Points',						// your language string for 'points'
+		'rewardline_widget' => 'Rewards', 	// tell your users about monthly rewards/premiums
+		'reward_1' => 'Reward 1: 200 points', 			// this is for the 1st winner
+		'reward_2' => 'Reward 2: 100 points',			// this is for the 2nd winner
+		'reward_title' => 'Learn and contribute to get the rewards!', // the mousetip when mouse is over reward field: <p class="rewardlist" title="x">...</p>
 		
 		// on page only
-		'page_title' => 'Beste Mitglieder je Monat (Top 20)', // best users of each month (top 20)
-		'choose_month' => 'Monat wählen:', 
-		'rewardline_onpage' => 'Monatliche Prämien: 1. Platz: 20 Euro | 2. Platz: 10 Euro', // tell your users about monthly rewards/premiums
+		'page_title' => 'Top Users of the month (Top 20)', // best users of each month (top 20)
+		'choose_month' => 'Choose month:', 
+		'rewardline_onpage' => 'Monthly rewards: 1. Prize: 200 points | 2. Prize: 100 points', // tell your users about monthly rewards/premiums
 		
 		// subnavigation on all users page
-		'subnav_title' => 'Monatsbeste', // best users of the month
+		'subnav_title' => 'Top Users', // best users of the month
 	);
 	
 

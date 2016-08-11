@@ -1,7 +1,7 @@
 <?php  
 
 	// CONNECT TO DATABASE
-	require_once( '../../../qa-config.php' );
+	require_once( '/var/www/html/qa/qa-config.php' );
 	mysql_connect(QA_MYSQL_HOSTNAME, QA_MYSQL_USERNAME, QA_MYSQL_PASSWORD) or die(mysql_error());
 	mysql_select_db(QA_MYSQL_DATABASE) or die(mysql_error());
 	

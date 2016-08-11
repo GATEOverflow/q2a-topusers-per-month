@@ -49,15 +49,21 @@ class qa_best_users_per_month_widget {
 
 	function output_widget($region, $place, $themeobject, $template, $request, $qa_content)
 	{
-		/* Settings */
-		$maxusers = 4;			// max users to display in widget
-		$adminID = 1;			// if you want the admin not to be considered in the userpoints list, define his id here (set 0 if admin should be displayed)
+		/* Settings arjun */
+	//	if($template !== 'custom')
+		{
+	//		return;
+		}
+		$maxusers = 5;			// max users to display in widget
+		$adminID = 3;			// if you want the admin not to be considered in the userpoints list, define his id here (set 0 if admin should be displayed)
 		$showReward = true; 	// false to hide rewards
 		
 		$langActUsers = qa_lang_html('qa_best_users_lang/best_users');		// language string for 'best users'
 		$pointsLang = qa_lang_html('qa_best_users_lang/points'); 			// language string for 'points'
-		$rewardHtml = '<p class="rewardlist" title="'.qa_lang_html('qa_best_users_lang/reward_title').'"><b>'.qa_lang_html('qa_best_users_lang/rewardline_widget').'</b><br />'.qa_lang_html('qa_best_users_lang/reward_1').'<br />'.qa_lang_html('qa_best_users_lang/reward_2').'</p>';
-		
+//		$rewardHtml = '<p class="rewardlist" title="'.qa_lang_html('qa_best_users_lang/reward_title').'"><b>'.qa_lang_html('qa_best_users_lang/rewardline_widget').'</b><br />'.qa_lang_html('qa_best_users_lang/reward_1').'<br />'.qa_lang_html('qa_best_users_lang/reward_2').'</p>';
+		//$rewardHtml = '<p class="rewardlist" title="'.qa_lang_html('qa_best_users_lang/reward_title').'"><b>'.qa_lang_html('qa_best_users_lang/rewardline_widget').'</b><br />Monthly Topper Reward'.'<br />'.'</p><iframe style="width:120px;height:240px;" marginwidth="0" marginheight="0" scrolling="no" frameborder="0" src="//ws-in.amazon-adsystem.com/widgets/q?ServiceVersion=20070822&OneJS=1&Operation=GetAdHtml&MarketPlace=IN&source=ac&ref=tf_til&ad_type=product_link&tracking_id=gc0a41-21&marketplace=amazon&region=IN&placement=B00DQG9DDU&asins=B00DQG9DDU&linkId=&show_border=true&link_opens_in_new_window=true"></iframe>';
+		$rewardHtml = '<p class="rewardlist" title="'.qa_lang_html('qa_best_users_lang/reward_title').'"><b>'.qa_lang_html('qa_best_users_lang/rewardline_widget').'</b><br />Monthly Topper: Rs. 500 <a href="https://www.amazon.in/gp/product/B00KGE2ER2/gcrnsts?ie=UTF8&keywords=gift%20card&qid=1453072385&ref_=sr_1_1&sr=8-1"> gift card</a>'.'<br />';
+
 		
 		/* 	CSS: 
 		
@@ -72,57 +78,41 @@ class qa_best_users_per_month_widget {
 			.uscore { position:absolute; top:15px; left:40px; font-size:11px; color:#545454; }
 			.rewardlist { clear:both; width:120px; padding:2px 7px; background: rgba(50,50,50,0.3); font-size:11px; color:#454545; margin:10px 0 0 50px; cursor:default; border:1px solid #C0CC50; }
 		*/
-
-		
-		// compare userscores from last month to userpoints now (this query is considering new users that do not exist in qa_userscores) 
-		// as we order by mpoints the query returns best users first, and we do not need to sort by php: arsort($scores)
+		$suffix = " and ^userpoints.userid not in (select userid from ^users where flags & ".QA_USER_FLAGS_USER_BLOCKED." = 1)";
 		$queryRecentScores = qa_db_query_sub("SELECT ^userpoints.userid, ^userpoints.points - COALESCE(^userscores.points,0) AS mpoints 
 								FROM `^userpoints`
-								LEFT JOIN `^userscores` on ^userpoints.userid=^userscores.userid 
-									AND YEAR(^userscores.date) = YEAR(CURDATE()) 
-									AND MONTH(^userscores.date) = MONTH(CURDATE())
-								WHERE ^userpoints.userid != ".$adminID."
-								ORDER BY mpoints DESC, ^userpoints.userid DESC;");
-			// thanks srini.venigalla for helping me with advanced mysql
-			// http://stackoverflow.com/questions/11085202/calculate-monthly-userscores-between-two-tables-using-mysql
-
+								LEFT JOIN `^userscores` on ^userpoints.userid=^userscores.userid
+									AND DATE_FORMAT(^userscores.date,'%Y') like '".date("Y")."' 
+                                                                        AND DATE_FORMAT(^userscores.date,'%m') like '".date("m")."'  
+			
+								WHERE 
+								^userpoints.userid != ".$adminID.$suffix.
+								" ORDER BY mpoints DESC, ^userpoints.userid DESC limit ".$maxusers.";"
+								);
 		
 		// save all userscores in array $scores
 		$scores = array();
 		while ( ($row = qa_db_read_one_assoc($queryRecentScores,true)) !== null ) {
-			$scores[$row['userid']] = $row['mpoints'];
+			$scores[] = $row;
 		}
 
 		// save userids in array $userids that we need to get their usernames by qa_userids_to_handles()
-		$userids = array();
-		$cnt = 0;
-		foreach ($scores as $userId => $val) {
-			$userids[++$cnt] = $userId;
-			// max users to store in array, had to be commented out as blocked users came into play (see below) 
-			// if($cnt >= $maxusers) break;
-		}
-		
-		// get handles (i.e. usernames) in array usernames
-		$usernames = qa_userids_to_handles($userids);
 		
 		// initiate output string
 		$bestusers = "<ol>";
 		$nrUsers = 0;
 		
-		foreach ($scores as $userId => $val) {
-			// no users with 0 points, and no blocked users!
+		foreach ($scores as $user) {
+			// no users with 0 points
+			$userId = $user['userid'];
+			$val = $user['mpoints'];
 			if($val>0) {
-				$currentUser = $usernames[$userId];
-				$user = qa_db_select_with_pending( qa_db_user_account_selectspec($currentUser, false) );
-				// check if user is blocked
-				if (! (QA_USER_FLAGS_USER_BLOCKED & $user['flags'])) {
+				$user = qa_db_select_with_pending( qa_db_user_account_selectspec($userId, true) );
 					// points below user name, check CSS descriptions for .bestusers
-					$bestusers .= "<li>" . qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], qa_opt('avatar_users_size'), false) . " " . qa_get_one_user_html($usernames[$userId], false).' <p class="uscore">'.$val.' '.$pointsLang.'</p></li>
+					$bestusers .= "<li>" . qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], qa_opt('avatar_users_size'), false) . " " . qa_get_one_user_html($user['handle'], false).' <p class="uscore">'.$val.' '.$pointsLang.'</p></li>
 					';
-
 					// max users to display 
 					if(++$nrUsers >= $maxusers) break;
-				}
 			}
 		}
 		$bestusers .= "</ol>";

@@ -56,7 +56,7 @@
 			$maxusers = 20; 			// max users to display 
 			$adminID = 1;				// if you want the admin not considered in the userpoints list, define his id here (set 0 if admin should be in)
 			$showReward = true; 		// false to hide rewards
-			$creditDeveloper = true;	// leave this true if you like this plugin, it sets one hidden link to my q2a-forum from the best-user-page only
+			$creditDeveloper = false;	// leave this true if you like this plugin, it sets one hidden link to my q2a-forum from the best-user-page only
 			
 			
 			/* TRANSFER LANGUAGE STRINGS */
@@ -170,14 +170,14 @@
 			// we need to do another query to get the userscores of the recent month
 			if($chosenMonth == date("Y-m-01") ) {
 				// calculate userscores from recent month
+				$suffix = " and ^userpoints.userid not in (select userid from ^users where flags & ".QA_USER_FLAGS_USER_BLOCKED." = 1)";
 				$queryRecentScores = qa_db_query_sub("
 										SELECT ^userpoints.userid, ^userpoints.points - COALESCE(^userscores.points,0) AS mpoints 
 										FROM `^userpoints`
 										LEFT JOIN `^userscores` on ^userpoints.userid=^userscores.userid 
 											AND YEAR(^userscores.date) = YEAR(CURDATE()) 
 											AND MONTH(^userscores.date) = MONTH(CURDATE())
-										WHERE ^userpoints.userid != ".$adminID."
-										ORDER BY mpoints DESC, ^userpoints.userid DESC;");
+										WHERE ^userpoints.userid != ".$adminID.$suffix); //no sorting here
 				// thanks srini.venigalla for helping me with advanced mysql
 				// http://stackoverflow.com/questions/11085202/calculate-monthly-userscores-between-two-tables-using-mysql
 			}
@@ -190,8 +190,8 @@
 										LEFT JOIN (SELECT userid, points FROM `^userscores` WHERE `date` = '".$intervalStart."') AS uf
 										ON uf.userid = ul.userid
 										WHERE ul.date = '".$intervalEnd."'
-										AND ul.userid != ".$adminID."
-										ORDER BY mpoints DESC;"
+										AND ul.userid != ".$adminID.$suffix
+										." ORDER BY mpoints DESC;"
 									);
 				// thanks raina77ow for helping me with mysql
 				// http://stackoverflow.com/questions/11178599/mysql-get-difference-between-two-values-in-one-table-multiple-userids
