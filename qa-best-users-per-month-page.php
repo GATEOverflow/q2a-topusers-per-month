@@ -4,8 +4,21 @@ class qa_best_users_per_month_page {
 
 	// initialize db-table 'userscores' if it does not exist yet
 	function init_queries($tableslc) {
+		$queries = array();
+		$tablename=qa_db_add_table_prefix('monthlytoppers');
+		$new = false;
+		if(!in_array($tablename, $tableslc)) {
+			$new = true;
+			$queries[] = "CREATE TABLE IF NOT EXISTS `".$tablename."` (
+				`date` date NOT NULL,
+				`userid` int(10) unsigned NOT NULL,
+				`points` int(11) NOT NULL DEFAULT '0',
+				KEY `userid` (`userid`),
+				KEY `date` (`date`)
+					)
+					";
+		}
 		$tablename=qa_db_add_table_prefix('userscores');
-
 		if(!in_array($tablename, $tableslc)) {
 			return "CREATE TABLE IF NOT EXISTS `".$tablename."` (
 				`date` date NOT NULL,
@@ -16,6 +29,26 @@ class qa_best_users_per_month_page {
 					)
 					";
 		}
+		else if($new){
+			$select = "select min(date) as date from ^userscores";
+			$result = qa_db_query_sub($select);
+			$mindate = qa_db_read_one_value($result);
+			$mdate = strtotime($mindate); 
+			$select = "select max(date) as date from ^userscores";
+			$result = qa_db_query_sub($select);
+			$maxdate = qa_db_read_one_value($result);
+			$mxdate = strtotime($maxdate);
+			while($mdate < $mxdate){
+				$insert = "insert into ^monthlytoppers (date, userid, points) select a.date, a.userid, b.points - COALESCE(a.points,0) AS mpoints from qa_userscores a,qa_userscores b where a.userid = b.userid and a.date = '".date("Y-m-d", $mdate)."' and b.date between (a.date + interval 1 day) and (a.date + interval 59 day)  group by a.userid,a.points,b.points  having mpoints>0";
+				$queries[] = $insert;
+				$select = "select min(date) as date from ^userscores where date > '".date("Y-m-d", $mdate)."'";
+				$result = qa_db_query_sub($select);
+				$mindate = qa_db_read_one_value($result);
+				$mdate = strtotime($mindate); 
+
+			} 
+		}
+		return $queries;
 	}
 
 	var $directory;
