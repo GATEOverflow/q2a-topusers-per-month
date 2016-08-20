@@ -1,6 +1,6 @@
 <?php
 
-class qa_best_users_per_month_widget {
+class qa_tupm_widget {
 	
 	function allow_template($template)
 	{

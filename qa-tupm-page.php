@@ -1,6 +1,6 @@
 <?php
 
-class qa_best_users_per_month_page {
+class qa_tupm_page {
 
 	// initialize db-table 'userscores' if it does not exist yet
 	function init_queries($tableslc) {
