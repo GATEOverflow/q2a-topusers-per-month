@@ -84,27 +84,25 @@ class qa_tupm_page {
 
 	function process_request($request)
 	{
-
-		/* SETTINGS */
-		$maxusers = 20; 			// max users to display 
-		$adminID = 1;				// if you want the admin not considered in the userpoints list, define his id here (set 0 if admin should be in)
-		$showReward = true; 		// false to hide rewards
+		 $maxusers = qa_opt('qa-tupm-page-count');
+                $hideadmin = qa_opt('qa-tupm-hide-admin');
+                $showReward = qa_opt('qa-tupm-reward-enable');
 
 
-		$lang_page_title = qa_lang_html('qa_top_users_lang/page_title');
-		$lang_choose_month = qa_lang_html('qa_top_users_lang/choose_month');
-		$lang_top_users = qa_lang_html('qa_top_users_lang/top_users');
-		$lang_points = qa_lang_html('qa_top_users_lang/points');
 
+		$lang_page_title = qa_lang_html('qa_tupm_lang/page_title');
+		$lang_choose_month = qa_lang_html('qa_tupm_lang/choose_month');
+		$lang_top_users = qa_lang_html('qa_tupm_lang/top_users');
+		$lang_points = qa_lang_html('qa_tupm_lang/points');
 
-		$showRewardOnTop = '<p style="font-size:14px;width:650px;margin-left:2px;line-height:140%;">' .qa_lang_html('qa_best_users_lang/rewardline_onpage') . "</p>";
-
+		if($showReward){
+		$showRewardOnTop = '<p>' .qa_opt('qa-tupm-reward-html') . "</p>";
+		}
 
 		/* start */
 		$qa_content=qa_content_prepare();
 
-		// add sub navigation (remove for plugin release)
-		// $qa_content['navigation']['sub']=qa_users_sub_navigation();
+		$qa_content['navigation']['sub']=qa_users_sub_navigation();
 
 		$qa_content['title'] = $lang_page_title; // list title
 
@@ -152,7 +150,7 @@ class qa_tupm_page {
 		// list all available months in array
 		foreach(get_year_months($firstListDate, $lastListDate) as $value){
 			// array index is <option value> (see html), saved string is label, e.g. $dropdown_options['2012-05-01'] = "month";
-			$dropdown_options[$value] = date("m/Y", strtotime($value) );
+			$dropdown_options[$value] = date("M Y", strtotime($value) );
 		}
 		// sort so that latest month is on top
 		krsort($dropdown_options);
@@ -167,11 +165,8 @@ class qa_tupm_page {
 		$qa_content['form']=array(
 				'tags' => 'METHOD="POST" ACTION="'.qa_self_html().'"',
 
-				'style' => 'wide', // options: light, wide, tall, basic
+				'style' => 'basic', // options: light, wide, tall, basic
 
-				// 'ok' => qa_post_text('buttonOK') ? 'Chosen Month: '.qa_post_text('request') : null,
-
-				// 'title' => 'Form title',
 
 				'fields' => array(
 					'request' => array(
@@ -180,40 +175,42 @@ class qa_tupm_page {
 						'tags' => 'NAME="request" onchange="this.form.submit()" id="dropdown_select"',
 						'type' => 'select',
 						'options' => $dropdown_options,
-						//'value' => '2012-05-01', // qa_html($request),
-						//'error' => qa_html('Another error'),
 						),
 					),
 
 
 				);
 
+			$suffix = " us1.userid not in (select userid from ^users where flags & ".QA_USER_FLAGS_USER_BLOCKED." = 1";
+
+			if($hideadmin){
+                        $suffix .=" or level >= ".QA_USER_LEVEL_ADMIN;
+                }
+                $suffix .=")";
 		// we need to do another query to get the userscores of the recent month
 		if($chosenMonth == date("Y-m-01") ) {
 			// calculate userscores from recent month
-			$suffix = " and ^userpoints.userid not in (select userid from ^users where flags & ".QA_USER_FLAGS_USER_BLOCKED." = 1)";
-			$queryRecentScores = qa_db_query_sub("SELECT ^userpoints.userid, ^userpoints.points - COALESCE(^userscores.points,0) AS mpoints 
-					FROM `^userpoints`
-					LEFT JOIN `^userscores` on ^userpoints.userid=^userscores.userid
-					AND DATE_FORMAT(^userscores.date,'%Y') like '".date("Y")."' 
-					AND DATE_FORMAT(^userscores.date,'%m') like '".date("m")."'  
 
+			$queryRecentScores = qa_db_query_sub("SELECT up1.userid, up1.points - COALESCE(us1.points,0) AS mpoints 
+					FROM `^userpoints` up1
+					LEFT JOIN `^userscores` us1 on up1.userid=us1.userid
+					AND DATE_FORMAT(us1.date,'%Y') like '".date("Y")."' 
+					AND DATE_FORMAT(us1.date,'%m') like '".date("m")."'  
 					WHERE 
-					^userpoints.userid != ".$adminID.$suffix.
+					".$suffix.
 					" ORDER BY mpoints DESC limit ".$maxusers.";"
 					);
-
 		}
 		else {
 			// calculate userscores for given month
 			$queryRecentScores = qa_db_query_sub("
-					SELECT ul.userid, 
-					ul.points - COALESCE(uf.points, 0) AS mpoints 
-					FROM `^userscores` ul 
-					LEFT JOIN (SELECT userid, points FROM `^userscores` WHERE `date` = '".$intervalStart."') AS uf
-					ON uf.userid = ul.userid
-					WHERE ul.date = '".$intervalEnd."'
-					AND ul.userid != ".$adminID.$suffix.
+					SELECT us1.userid, 
+					us1.points - COALESCE(us2.points, 0) AS mpoints 
+					FROM `^userscores` us1 
+					LEFT JOIN (SELECT userid, points FROM `^userscores` WHERE `date` = '".$intervalStart."') AS us2
+					ON us1.userid = us2.userid
+					WHERE us1.date = '".$intervalEnd."' and
+					".$suffix.
 					" ORDER BY mpoints DESC limit ".$maxusers.";"
 					);
 		}
@@ -222,9 +219,7 @@ class qa_tupm_page {
 		while ( ($row = qa_db_read_one_assoc($queryRecentScores,true)) !== null ) {
 			$scores[] = $row;
 		}
-		// initiate output string
-		$bestusers = "<ol>";
-		$nrUsers = 0;
+		$topusers = "<ol>";
 
 		foreach ($scores as $user) {
 			// no users with 0 points
@@ -232,29 +227,24 @@ class qa_tupm_page {
 			$val = $user['mpoints'];
 			if($val>0) {
 				$user = qa_db_select_with_pending( qa_db_user_account_selectspec($userId, true) );
-				// points below user name, check CSS descriptions for .bestusers
-				$bestusers .= "<li>" . qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], qa_opt('avatar_users_size'), false) . " " . qa_get_one_user_html($user['handle'], false).' <p class="uscore">'.$val.' '.$pointsLang.'</p></li>
+				$topusers .= "<li>" . qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], qa_opt('avatar_users_size'), true) . "<span class='topusers-span'> " . qa_get_one_user_html($user['handle'], false).' <p class="uscore">'.$val.' '.$pointsLang.'</p></span></li>
 					';
-				// max users to display 
-				if(++$nrUsers >= $maxusers) break;
 			}
 		}
-		$bestusers .= "</ol>";
+		$topusers .= "</ol>";
 
 
 		/* output into theme */
-		$qa_content['custom'.++$c]='<div class="topusers" style="border-radius:0; padding:35px 48px; margin-top:-2px;">';
+		$qa_content['custom']='<div class="topusers topusers-page">';
 
 		// convert date to display m/Y, 2 digit month and 4 digit year
-		$monthName = date("m/Y", strtotime($chosenMonth) );
+		$monthName = date("M Y", strtotime($chosenMonth) );
 
-		$qa_content['custom'.++$c]='<div style="font-size:16px;margin-bottom:18px;"><b>'.$lang_best_users.' '.$monthName.'</b></div>'; 
-		$qa_content['custom'.++$c]= $bestusers;
+		$qa_content['custom'].='<div class="tupm-title">'.$lang_top_users.' '.$monthName.'</div>'; 
+		$qa_content['custom'].= $topusers;
 
-		$qa_content['custom'.++$c]='</div>';
+		$qa_content['custom'].='</div>';
 
-		// make bestusers list bigger on page and style the dropdown
-		$qa_content['custom'.++$c] = '<style type="text/css">#dropdown .qa-form-wide-label { width:120px; text-align:center; } #dropdown .qa-form-wide-data { width:120px; text-align:center; }</style>'; 
 
 		// jquery workaround (or call it hack) to select the current month in dropdown
 		$qa_content['custom'.++$c] = ' <script type="text/javascript">$(document).ready(function(){  $("select#dropdown_select").val(\''.$intervalStart.'\') }); </script>';

@@ -10,21 +10,17 @@ class qa_tupm_admin {
 
 		switch($option) {
 			case 'tupm-plugin-css':
-				return '.qa-top-search  {
-					background-color :cornsilk;
-				}
-
-				.qa-top-search-title {
-font: bold;
-				}
-
-				.qa-top-search-item {
-margin: 3px;
-	font-size: x-small;
-color: white;
-       padding-right: 2px;
-       padding-left: 2px;
-				}
+				return '
+.topusers ol{ list-style:none; margin-left: -15px;}
+.topusers .qa-widget-side a {
+                                        display:initial;}
+.topusers img{
+float:left;
+}
+.top-users-span {
+    display: inline-block;
+    margin-left: 10px;
+}
 
 				';
 			case 'qa-tupm-plugin-title':
@@ -33,6 +29,8 @@ color: white;
 				return '10';
 			case 'qa-tupm-page-count':
 				return '20';
+			case 'qa-tupm-admin-hide':
+				return '';
 			case 'qa-tupm-reward-enable':
 				return '';
 			case 'qa-tupm-reward-html':
@@ -83,28 +81,34 @@ color: white;
 				'type' => 'text',
 				);
 		$fields[] = array(
-				'label' => 'Top Search Display Count',
-				'tags' => 'NAME="qa-topsearch-plugin-count"',
-				'value' => qa_opt('qa-topsearch-plugin-count'),
-				'type' => 'text',
+				'label' => 'Top Users Count in Widget',
+				'tags' => 'NAME="qa-tupm-widget-count"',
+				'value' => qa_opt('qa-tupm-widget-count'),
+				'type' => 'number',
 				);
 		$fields[] = array(
-				'label' => 'No. of Previous Days to Query searches',
-				'tags' => 'NAME="qa-topsearch-plugin-interval-days"',
-				'value' => qa_opt('qa-topsearch-plugin-interval-days'),
-				'type' => 'text',
+				'label' => 'Top Users Count in Page',
+				'tags' => 'NAME="qa-tupm-page-count"',
+				'value' => qa_opt('qa-tupm-page-count'),
+				'type' => 'number',
 				);
 		$fields[] = array(
-				'label' => 'Search Type',
-				'tags' => 'NAME="qa-topsearch-plugin-param"',
-				'value' => qa_opt('qa-topsearch-plugin-param'),
-				'type' => 'select',
-				'options' => array('search'=> 'search','tagsearch'=> 'tagsearch'),
+				'label' => 'Enable Rewards',
+				'tags' => 'NAME="qa-tupm-reward-enable"',
+				'value' => qa_opt('qa-tupm-reward-enable'),
+				'type' => 'checkbox',
 				);
 		$fields[] = array(
-				'label' => 'Change to Recent Searches',
-				'tags' => 'NAME="qa-topsearch-plugin-recent"',
-				'value' => qa_opt('qa-topsearch-plugin-recent'),
+				'label' => 'Reward HTML',
+				'tags' => 'NAME="qa-tupm-reward-html"',
+				'value' => qa_opt('qa-tupm-reward-html'),
+				'type' => 'textarea',
+				'rows' => 20,
+				);
+		$fields[] = array(
+				'label' => 'Hide admins from Top Users List',
+				'tags' => 'NAME="qa-tupm-hide-admin"',
+				'value' => qa_opt('qa-tupm-hide-admin'),
 				'type' => 'checkbox',
 				);
 
@@ -117,11 +121,11 @@ color: white;
 				'buttons' => array(
 					array(
 						'label' => qa_lang_html('main/save_button'),
-						'tags' => 'NAME="tupm_save_button"',
+						'tags' => 'NAME="tupm-save-button"',
 					     ),
 					array(
 						'label' => qa_lang_html('admin/reset_options_button'),
-						'tags' => 'NAME="tupm_reset_button"',
+						'tags' => 'NAME="tupm-reset-button"',
 					     ),
 					),
 			    );

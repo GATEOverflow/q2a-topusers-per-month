@@ -9,7 +9,7 @@ class qa_tupm_widget {
 	
 	function allow_region($region)
 	{
-		return ($region != 'side');
+		return ($region == 'side');
 	}
 
 	function output_widget($region, $place, $themeobject, $template, $request, $qa_content)
@@ -39,7 +39,7 @@ class qa_tupm_widget {
 			.uscore { position:absolute; top:15px; left:40px; font-size:11px; color:#545454; }
 			.rewardlist { clear:both; width:120px; padding:2px 7px; background: rgba(50,50,50,0.3); font-size:11px; color:#454545; margin:10px 0 0 50px; cursor:default; border:1px solid #C0CC50; }
 		*/
-		$suffix = " and ^userpoints.userid not in (select userid from ^users where flags & ".QA_USER_FLAGS_USER_BLOCKED." = 1";
+		$suffix = " ^userpoints.userid not in (select userid from ^users where flags & ".QA_USER_FLAGS_USER_BLOCKED." = 1";
 		if($hideadmin){
 			$suffix .=" or level >= ".QA_USER_LEVEL_ADMIN;
 		}
@@ -51,7 +51,7 @@ class qa_tupm_widget {
                                                                         AND DATE_FORMAT(^userscores.date,'%m') like '".date("m")."'  
 			
 								WHERE 
-								^userpoints.userid != ".$adminID.$suffix.
+								".$suffix.
 								" ORDER BY mpoints DESC, ^userpoints.userid DESC limit ".$maxusers.";"
 								);
 		
@@ -61,9 +61,6 @@ class qa_tupm_widget {
 			$scores[] = $row;
 		}
 
-		// save userids in array $userids that we need to get their usernames by qa_userids_to_handles()
-		
-		// initiate output string
 		$topusers = "<ol>";
 		$nrUsers = 0;
 		
@@ -73,10 +70,8 @@ class qa_tupm_widget {
 			$val = $user['mpoints'];
 			if($val>0) {
 				$user = qa_db_select_with_pending( qa_db_user_account_selectspec($userId, true) );
-					$topusers .= "<li>" . qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], qa_opt('avatar_users_size'), false) . " " . qa_get_one_user_html($user['handle'], false).' <p class="uscore">'.$val.' '.$pointsLang.'</p></li>
+					$topusers .= "<li>" . qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], qa_opt('avatar_users_size'), true) . "<span class=\"topusers-span\">" . qa_get_one_user_html($user['handle'], false).' <p class="uscore">'.$val.' '.$pointsLang.'</p></span></li>
 					';
-					// max users to display 
-					if(++$nrUsers >= $maxusers) break;
 			}
 		}
 		$topusers .= "</ol>";
@@ -92,7 +87,7 @@ class qa_tupm_widget {
 		setlocale (LC_TIME, $localcode); 
 		$monthName = strftime("%B %G", strtotime( date('F')) ); // %B for full month name, %b for abbreviation
 		*/
-		$monthName = date('m/Y'); // 2 digit month and 4 digit year
+		$monthName = date('M Y'); // 2 digit month and 4 digit year
 		
 		$themeobject->output('<div class="qa-widget-title tupm-title"><a href="'.qa_html('topusers').'">'.$langActUsers.'</a> <span class="qa-widget-span">'.$monthName.'</span></div>'); 
 		$themeobject->output( $topusers );
