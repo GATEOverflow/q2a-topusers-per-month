@@ -12,7 +12,11 @@ class qa_tupm_admin {
 			case 'tupm-plugin-css':
 				return '
 .topusers ol{ list-style:none; margin-left: -15px;}
+.topusers li  {
+    margin-bottom: 15px;
+}
 .topusers .qa-widget-side a {
+	vertical-align:middle;
                                         display:initial;}
 .topusers img{
 float:left;
@@ -20,6 +24,7 @@ float:left;
 .topusers-span {
     display: inline-block;
     margin-left: 10px;
+	vertical-align:middle;
 }
 .topusers .uscore{
 font-family: Impact;
@@ -45,6 +50,8 @@ margin-bottom: 10px;
 			case 'qa-tupm-page-count':
 				return '20';
 			case 'qa-tupm-admin-hide':
+				return '';
+			case 'qa-tupm-points-hide':
 				return '';
 			case 'qa-tupm-reward-enable':
 				return '';
@@ -124,6 +131,12 @@ margin-bottom: 10px;
 				'label' => 'Hide admins from Top Users List',
 				'tags' => 'NAME="qa-tupm-hide-admin"',
 				'value' => qa_opt('qa-tupm-hide-admin'),
+				'type' => 'checkbox',
+				);
+		$fields[] = array(
+				'label' => 'Hide points from Top Users List',
+				'tags' => 'NAME="qa-tupm-hide-points"',
+				'value' => qa_opt('qa-tupm-hide-points'),
 				'type' => 'checkbox',
 				);
 

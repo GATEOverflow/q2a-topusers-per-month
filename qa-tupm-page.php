@@ -86,6 +86,7 @@ class qa_tupm_page {
 	{
 		 $maxusers = qa_opt('qa-tupm-page-count');
                 $hideadmin = qa_opt('qa-tupm-hide-admin');
+                $hidepoints = qa_opt('qa-tupm-hide-points');
                 $showReward = qa_opt('qa-tupm-reward-enable');
 
 
@@ -227,7 +228,9 @@ class qa_tupm_page {
 			$val = $user['mpoints'];
 			if($val>0) {
 				$user = qa_db_select_with_pending( qa_db_user_account_selectspec($userId, true) );
-				$topusers .= "<li>" . qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], qa_opt('avatar_users_size'), true) . "<span class='topusers-span'> " . qa_get_one_user_html($user['handle'], false).' <p class="uscore">'.$val.' '.$pointsLang.'</p></span></li>
+				$topusers .= "<li>" . qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], qa_opt('avatar_users_size'), true) . "<span class='topusers-span'> " . qa_get_one_user_html($user['handle'], false);
+				if(!$hidepoints)
+					$topusers .=' <p class="uscore">'.$val.' '.$pointsLang.'</p></span></li>
 					';
 			}
 		}
