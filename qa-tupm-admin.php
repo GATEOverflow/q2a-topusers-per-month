@@ -17,9 +17,24 @@ class qa_tupm_admin {
 .topusers img{
 float:left;
 }
-.top-users-span {
+.topusers-span {
     display: inline-block;
     margin-left: 10px;
+}
+.topusers .uscore{
+font-family: Impact;
+}
+.tupm-title {
+    font-family: Arial;
+    font-size: large;
+    font-weight: bold;
+margin-top: 10px;
+}
+.topusers-page{
+font-size: large;
+}
+.topusers-page .tupm-title {
+margin-bottom: 10px;
 }
 
 				';
@@ -34,7 +49,7 @@ float:left;
 			case 'qa-tupm-reward-enable':
 				return '';
 			case 'qa-tupm-reward-html':
-				return '';
+				return '200 points';
 			default:
 				return null;
 
