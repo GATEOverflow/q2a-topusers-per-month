@@ -49,9 +49,9 @@ margin-bottom: 10px;
 				return '10';
 			case 'qa-tupm-page-count':
 				return '20';
-			case 'qa-tupm-admin-hide':
+			case 'qa-tupm-hide-admin':
 				return '';
-			case 'qa-tupm-points-hide':
+			case 'qa-tupm-hide-points':
 				return '';
 			case 'qa-tupm-reward-enable':
 				return '';
@@ -73,6 +73,12 @@ margin-bottom: 10px;
 
 				qa_opt($i,$v);
 			}
+			if(!isset($_POST['qa-tupm-hide-admin']))
+				qa_opt('qa-tupm-hide-admin', '0');
+			if(!isset($_POST['qa-tupm-hide-points']))
+				qa_opt('qa-tupm-hide-points', '0');
+			if(!isset($_POST['qa-tupm-reward-enable']))
+				qa_opt('qa-tupm-reward-enable', '0');
 
 			$ok = qa_lang('admin/options_saved');
 		}
