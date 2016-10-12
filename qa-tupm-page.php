@@ -39,7 +39,7 @@ class qa_tupm_page {
 			$maxdate = qa_db_read_one_value($result);
 			$mxdate = strtotime($maxdate);
 			while($mdate < $mxdate){
-				$insert = "insert into ^monthlytoppers (date, userid, points) select a.date, a.userid, b.points - COALESCE(a.points,0) AS mpoints from qa_userscores a,qa_userscores b where a.userid = b.userid and a.date = '".date("Y-m-d", $mdate)."' and b.date between (a.date + interval 1 day) and (a.date + interval 59 day)  group by a.userid,a.points,b.points  having mpoints>0";
+				$insert = "insert into ^monthlytoppers (date, userid, points) select a.date, a.userid, b.points - COALESCE(a.points,0) AS mpoints from ^userscores a, ^userscores b where a.userid = b.userid and a.date = '".date("Y-m-d", $mdate)."' and b.date between (a.date + interval 1 day) and (a.date + interval 59 day)  group by a.userid,a.points,b.points  having mpoints>0";
 				$queries[] = $insert;
 				$select = "select min(date) as date from ^userscores where date > '".date("Y-m-d", $mdate)."'";
 				$result = qa_db_query_sub($select);
@@ -48,6 +48,7 @@ class qa_tupm_page {
 
 			} 
 		}
+
 		return $queries;
 	}
 
@@ -94,11 +95,34 @@ class qa_tupm_page {
 		$lang_page_title = qa_lang_html('qa_tupm_lang/page_title');
 		$lang_choose_month = qa_lang_html('qa_tupm_lang/choose_month');
 		$lang_top_users = qa_lang_html('qa_tupm_lang/top_users');
-		$lang_points = qa_lang_html('qa_tupm_lang/points');
+		$pointsLang =  qa_lang_html('qa_tupm_lang/points');
 
 		if($showReward){
 		$showRewardOnTop = '<p>' .qa_opt('qa-tupm-reward-html') . "</p>";
 		}
+
+
+
+		 $day = date("j");
+                if($day == "1")
+                {
+                        if(qa_opt("newmonth")==="false")//want to run this only once a month
+                        {
+                                $date = date('Y-m-d');
+				$ldate = date("Y-m-d", mktime(0, 0, 0, date("m")-1, 1));
+                                $insert = "insert into  ^userscores(userid, points, date) select userid, points, '".$date."' as date from ^userpoints order by userid asc";
+                                $result = qa_db_query_sub($insert);
+                                $insert = "insert into ^monthlytoppers (date, userid, points) select '".$ldate."' as date, a.userid, a.points - COALESCE(b.points,0) AS mpoints from ^userscores a, ^userscores b where a.userid = b.userid and a.date = '".$date."' and b.date between (a.date - interval 35 day) and (a.date - interval 25 day)  group by a.userid,a.points,b.points  having mpoints>0";
+                                $result = qa_db_query_sub($insert);
+
+                                qa_opt("newmonth", "true");
+                        }
+                }
+                else {
+                        if(qa_opt("newmonth")!=="false")
+                                qa_opt("newmonth", "false");
+                }
+
 
 		/* start */
 		$qa_content=qa_content_prepare();

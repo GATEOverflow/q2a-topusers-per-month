@@ -73,7 +73,7 @@ class qa_tupm_widget {
 		*/
 		$monthName = date('M Y'); // 2 digit month and 4 digit year
 		
-		$themeobject->output('<div class="qa-widget-title tupm-title"><a href="'.qa_html('topusers').'">'.$langActUsers.'</a> <span class="qa-widget-span">'.$monthName.'</span></div>'); 
+		$themeobject->output('<div class="qa-widget-title tupm-title"><a href="'.qa_path('topusers').'">'.$langActUsers.'</a> <span class="qa-widget-span">'.$monthName.'</span></div>'); 
 		$themeobject->output( $topusers );
 		
 		// display reward info
