@@ -18,9 +18,9 @@ class qa_tupm_page {
 					)
 					";
 		}
-		$tablename=qa_db_add_table_prefix('userscores');
+		$tablename1=qa_db_add_table_prefix('userscores');
 		if(!in_array($tablename, $tableslc)) {
-			return "CREATE TABLE IF NOT EXISTS `".$tablename."` (
+			return "CREATE TABLE IF NOT EXISTS `".$tablename1."` (
 				`date` date NOT NULL,
 				`userid` int(10) unsigned NOT NULL,
 				`points` int(11) NOT NULL DEFAULT '0',
@@ -39,7 +39,7 @@ class qa_tupm_page {
 			$maxdate = qa_db_read_one_value($result);
 			$mxdate = strtotime($maxdate);
 			while($mdate < $mxdate){
-				$insert = "insert into ^monthlytoppers (date, userid, points) select a.date, a.userid, b.points - COALESCE(a.points,0) AS mpoints from ^userscores a, ^userscores b where a.userid = b.userid and a.date = '".date("Y-m-d", $mdate)."' and b.date between (a.date + interval 1 day) and (a.date + interval 59 day)  group by a.userid,a.points,b.points  having mpoints>0";
+				$insert = "insert into ".$tablename." (date, userid, points) select a.date, a.userid, b.points - COALESCE(a.points,0) AS mpoints from ".$tablename1." a, ".$tablename1." b where a.userid = b.userid and a.date = '".date("Y-m-d", $mdate)."' and b.date between (a.date + interval 1 day) and (a.date + interval 59 day)  group by a.userid,a.points,b.points  having mpoints>0";
 				$queries[] = $insert;
 				$select = "select min(date) as date from ^userscores where date > '".date("Y-m-d", $mdate)."'";
 				$result = qa_db_query_sub($select);
@@ -48,7 +48,57 @@ class qa_tupm_page {
 
 			} 
 		}
+		$events = qa_db_read_one_value(qa_db_query_raw("show events where name like 'tupmevent'"), true);
+		$tablename2=qa_db_add_table_prefix('userpoints');
 
+		if(!$events){
+			$queries[] = "CREATE EVENT if not exists tupmevent
+				ON SCHEDULE EVERY 1 MONTH
+				DO
+				BEGIN
+				insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc;
+			insert into ".$tablename." (date, userid, points) select CURDATE() - interval 1 month as date, a.userid, a.points - COALESCE(b.points,0) AS mpoints from ".$tablename1." a, ".$tablename1." b where a.userid = b.userid and a.date = CURDATE() and b.date between (a.date - interval 35 day) and (a.date - interval 25 day)  group by a.userid,a.points,b.points  having mpoints>0;
+
+			END ";
+		}
+		if(qa_opt('qa-tupm-weekly-enable'))
+		{
+			$tablename=qa_db_add_table_prefix('weeklytoppers');
+			$new = false;
+			if(!in_array($tablename, $tableslc)) {
+				$new = true;
+				$queries[] = "CREATE TABLE IF NOT EXISTS `".$tablename."` (
+					`date` date NOT NULL,
+					`userid` int(10) unsigned NOT NULL,
+					`points` int(11) NOT NULL DEFAULT '0',
+					KEY `userid` (`userid`),
+					KEY `date` (`date`)
+						)
+						";
+			}
+			$tablename1=qa_db_add_table_prefix('userscores_weekly');
+			if(!in_array($tablename, $tableslc)) {
+				$queries[]= "CREATE TABLE IF NOT EXISTS `".$tablename1."` (
+					`date` date NOT NULL,
+					`userid` int(10) unsigned NOT NULL,
+					`points` int(11) NOT NULL DEFAULT '0',
+					KEY `userid` (`userid`),
+					KEY `date` (`date`)
+						)
+						";
+			}
+			$events = qa_db_read_one_value(qa_db_query_raw("show events where name like 'tupmweeklyevent'"), true);
+			if(!$events){
+				$queries[] = "CREATE EVENT if not exists tupmweeklyevent
+					ON SCHEDULE EVERY 1 WEEK
+					DO
+					BEGIN
+					insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc;
+				insert into ".$tablename." (date, userid, points) select CURDATE() - interval 1 week as date, a.userid, a.points - COALESCE(b.points,0) AS mpoints from ".$tablename1." a, ".$tablename1." b where a.userid = b.userid and a.date = CURDATE() and b.date between (a.date - interval 10 day) and (a.date - interval 4 day)  group by a.userid,a.points,b.points  having mpoints>0;
+
+				END ";
+			}
+		}
 		return $queries;
 	}
 
@@ -85,10 +135,10 @@ class qa_tupm_page {
 
 	function process_request($request)
 	{
-		 $maxusers = qa_opt('qa-tupm-page-count');
-                $hideadmin = qa_opt('qa-tupm-hide-admin');
-                $hidepoints = qa_opt('qa-tupm-hide-points');
-                $showReward = qa_opt('qa-tupm-reward-enable');
+		$maxusers = qa_opt('qa-tupm-page-count');
+		$hideadmin = qa_opt('qa-tupm-hide-admin');
+		$hidepoints = qa_opt('qa-tupm-hide-points');
+		$showReward = qa_opt('qa-tupm-reward-enable');
 
 
 
@@ -98,30 +148,30 @@ class qa_tupm_page {
 		$pointsLang =  qa_lang_html('qa_tupm_lang/points');
 
 		if($showReward){
-		$showRewardOnTop = '<p>' .qa_opt('qa-tupm-reward-html') . "</p>";
+			$showRewardOnTop = '<p>' .qa_opt('qa-tupm-reward-html') . "</p>";
 		}
 
 
 
-		 $day = date("j");
-                if($day == "1")
-                {
-                        if(qa_opt("newmonth")==="false")//want to run this only once a month
-                        {
-                                $date = date('Y-m-d');
+		$day = date("j");
+		if($day == "1")
+		{
+			if(qa_opt("newmonth")==="false")//want to run this only once a month
+			{
+				$date = date('Y-m-d');
 				$ldate = date("Y-m-d", mktime(0, 0, 0, date("m")-1, 1));
-                                $insert = "insert into  ^userscores(userid, points, date) select userid, points, '".$date."' as date from ^userpoints order by userid asc";
-                                $result = qa_db_query_sub($insert);
-                                $insert = "insert into ^monthlytoppers (date, userid, points) select '".$ldate."' as date, a.userid, a.points - COALESCE(b.points,0) AS mpoints from ^userscores a, ^userscores b where a.userid = b.userid and a.date = '".$date."' and b.date between (a.date - interval 35 day) and (a.date - interval 25 day)  group by a.userid,a.points,b.points  having mpoints>0";
-                                $result = qa_db_query_sub($insert);
+				$insert = "insert into  ^userscores(userid, points, date) select userid, points, '".$date."' as date from ^userpoints order by userid asc";
+				$result = qa_db_query_sub($insert);
+				$insert = "insert into ^monthlytoppers (date, userid, points) select '".$ldate."' as date, a.userid, a.points - COALESCE(b.points,0) AS mpoints from ^userscores a, ^userscores b where a.userid = b.userid and a.date = '".$date."' and b.date between (a.date - interval 35 day) and (a.date - interval 25 day)  group by a.userid,a.points,b.points  having mpoints>0";
+				$result = qa_db_query_sub($insert);
 
-                                qa_opt("newmonth", "true");
-                        }
-                }
-                else {
-                        if(qa_opt("newmonth")!=="false")
-                                qa_opt("newmonth", "false");
-                }
+				qa_opt("newmonth", "true");
+			}
+		}
+		else {
+			if(qa_opt("newmonth")!=="false")
+				qa_opt("newmonth", "false");
+		}
 
 
 		/* start */
@@ -206,12 +256,12 @@ class qa_tupm_page {
 
 				);
 
-			$suffix = " us1.userid not in (select userid from ^users where flags & ".QA_USER_FLAGS_USER_BLOCKED." = 1";
+		$suffix = " us1.userid not in (select userid from ^users where flags & ".QA_USER_FLAGS_USER_BLOCKED." = 1";
 
-			if($hideadmin){
-                        $suffix .=" or level >= ".QA_USER_LEVEL_ADMIN;
-                }
-                $suffix .=")";
+		if($hideadmin){
+			$suffix .=" or level >= ".QA_USER_LEVEL_ADMIN;
+		}
+		$suffix .=")";
 		// we need to do another query to get the userscores of the recent month
 		if($chosenMonth == date("Y-m-01") ) {
 			// calculate userscores from recent month
@@ -255,7 +305,7 @@ class qa_tupm_page {
 				$topusers .= "<li>" . qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], qa_opt('avatar_users_size'), true) . "<span class='topusers-span'> " . qa_get_one_user_html($user['handle'], false);
 				if(!$hidepoints)
 					$topusers .=' <p class="uscore">'.$val.' '.$pointsLang.'</p></span></li>
-					';
+						';
 			}
 		}
 		$topusers .= "</ol>";

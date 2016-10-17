@@ -1,26 +1,11 @@
-====================================
-Question2Answer Best Users per Month v1.1
-====================================
+========================================
+Question2Answer Top Users per Month/Week 
+========================================
 -----------
 Description
 -----------
-This is a plugin for **Question2Answer** that displays the best users of the current month in a widget and on a separate page
+This is a plugin for **Question2Answer** that displays the top scoring users of the current month as well as week in two separate sidebar widgets and on a separate page
 
---------
-Features
---------
-- displays a widget that holds the best users of the current month regarding their stored userpoints
-- provides a page for showing best users of previous months, access-URL ``your-q2a-installation.com/bestusers``
-- the plugin creates a table "qa_userscores" in your database to store monthly userpoints
-- you need to setup a cronjob for file "cronjob.php" that is called the first day of each month, so that monthly userscores get stored
-- Before installing the plugin, please think about your point system (>Admin >Points). The points should not change over time, as the plugin stores recent userpoints each month over time. If you change userpoints later on, the userscores shown for the recent month could vary_ a lot.
-
-.. _vary: http://www.question2answer.org/qa/16425/new-plugin-best-users-per-month-release-call-for-beta-users?show=16502#a16502
-
-------------
-Example
-------------
-This plugin is used at www.gute-mathe-fragen.de (q2a-forum for mathematics). See also screenshot in the plugin files.
 
 ------------
 Installation
@@ -28,17 +13,11 @@ Installation
 #. Install Question2Answer_
 #. Get the source code for this plugin directly from github_
 #. Extract the files.
-#. Change language strings in file **qa-best-users-per-month-lang.php**
-#. Optional: Change settings in file qa-best-users-per-month-widget.php and qa-best-users-per-month-page.php
-#. Upload the files to a subfolder called ``best-users-per-month`` inside the ``qa-plugins`` folder of your Q2A installation.
-#. Navigate to your site, go to **Admin -> Plugins** on your q2a install. Check if plugin "Best Users per Month" is listed. This will automatically install the table qa_userscores.
-#. Then go to **Admin >Layout >Available widgets**, and add the widget "Best Users per Month", set its position to: Side panel - Below sidebar box
-#. Setup a cronjob_ for file ``qa-plugin/best-users-per-month/cronjob/cronjob.php``, and call it the first day of each month (it stores the monthly userpoints into table qa_userscores)
-#. Run **cronjob.php** once. This will save all recent userpoints as userscores. Do not wonder: Afterwards all userscores will start with 0 points.
+#. Change language strings in file **qa-tupm-lang.php**
+#. Upload the files to a subfolder  inside the ``qa-plugins`` folder of your Q2A installation.
+#. Then go to **Admin >Layout >Available widgets**, and add the widget "Top Users per Month", set its position to: Side panel - Below sidebar box. Do same for "Weekly Widget"
 
 .. _Question2Answer: http://www.question2answer.org/install.php
-.. _github: https://github.com/echteinfachtv/q2a-best-users-per-month
-.. _cronjob: http://www.question2answer.org/qa/16425/new-plugin-best-users-per-month-release-call-for-beta-users?show=16443#a16443
 
 ----------
 Disclaimer

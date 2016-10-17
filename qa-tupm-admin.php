@@ -47,6 +47,8 @@ margin-bottom: 10px;
 				return 'Top Monthly Users';
 			case 'qa-tupm-widget-count':
 				return '10';
+			case 'qa-tupm-weekly-widget-count':
+				return '10';
 			case 'qa-tupm-page-count':
 				return '20';
 			case 'qa-tupm-hide-admin':
@@ -56,6 +58,16 @@ margin-bottom: 10px;
 			case 'qa-tupm-reward-enable':
 				return '';
 			case 'qa-tupm-reward-html':
+				return '200 points';
+			case 'qa-tupm-weekly-enable':
+				return '';
+			case 'qa-tupm-weekly-hide-admin':
+				return '';
+			case 'qa-tupm-weekly-hide-points':
+				return '';
+			case 'qa-tupm-weekly-reward-enable':
+				return '';
+			case 'qa-tupm-weekly-reward-html':
 				return '200 points';
 			default:
 				return null;
@@ -79,6 +91,14 @@ margin-bottom: 10px;
 				qa_opt('qa-tupm-hide-points', '0');
 			if(!isset($_POST['qa-tupm-reward-enable']))
 				qa_opt('qa-tupm-reward-enable', '0');
+			if(!isset($_POST['qa-tupm-weekly-enable']))
+				qa_opt('qa-tupm-weekly-enable', '0');
+			if(!isset($_POST['qa-tupm-weekly-hide-admin']))
+				qa_opt('qa-tupm-weekly-hide-admin', '0');
+			if(!isset($_POST['qa-tupm-weekly-hide-points']))
+				qa_opt('qa-tupm-weekly-hide-points', '0');
+			if(!isset($_POST['qa-tupm-weekly-reward-enable']))
+				qa_opt('qa-tupm-weekly-reward-enable', '0');
 
 			$ok = qa_lang('admin/options_saved');
 		}
@@ -143,6 +163,43 @@ margin-bottom: 10px;
 				'label' => 'Hide points from Top Users List',
 				'tags' => 'NAME="qa-tupm-hide-points"',
 				'value' => qa_opt('qa-tupm-hide-points'),
+				'type' => 'checkbox',
+				);
+		$fields[] = array(
+				'label' => 'Enable Weekly Toppers',
+				'tags' => 'NAME="qa-tupm-weekly-enable"',
+				'value' => qa_opt('qa-tupm-weekly-enable'),
+				'type' => 'checkbox',
+				);
+		$fields[] = array(
+				'label' => 'Top Users Count in Weekly Widget',
+				'tags' => 'NAME="qa-tupm-weekly-widget-count"',
+				'value' => qa_opt('qa-tupm-weekly-widget-count'),
+				'type' => 'number',
+				);
+		$fields[] = array(
+				'label' => 'Enable Weekly Rewards',
+				'tags' => 'NAME="qa-tupm-weekly-reward-enable"',
+				'value' => qa_opt('qa-tupm-weekly-reward-enable'),
+				'type' => 'checkbox',
+				);
+		$fields[] = array(
+				'label' => 'Weekly Reward HTML',
+				'tags' => 'NAME="qa-tupm-weekly-reward-html"',
+				'value' => qa_opt('qa-tupm-weekly-reward-html'),
+				'type' => 'textarea',
+				'rows' => 20,
+				);
+		$fields[] = array(
+				'label' => 'Hide admins from Weekly Top Users List',
+				'tags' => 'NAME="qa-tupm-weekly-hide-admin"',
+				'value' => qa_opt('qa-tupm-weekly-hide-admin'),
+				'type' => 'checkbox',
+				);
+		$fields[] = array(
+				'label' => 'Hide points from Weekly Top Users List',
+				'tags' => 'NAME="qa-tupm-weekly-hide-points"',
+				'value' => qa_opt('qa-tupm-weekly-hide-points'),
 				'type' => 'checkbox',
 				);
 
