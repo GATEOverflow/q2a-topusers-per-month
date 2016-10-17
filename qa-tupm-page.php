@@ -153,27 +153,6 @@ class qa_tupm_page {
 
 
 
-		$day = date("j");
-		if($day == "1")
-		{
-			if(qa_opt("newmonth")==="false")//want to run this only once a month
-			{
-				$date = date('Y-m-d');
-				$ldate = date("Y-m-d", mktime(0, 0, 0, date("m")-1, 1));
-				$insert = "insert into  ^userscores(userid, points, date) select userid, points, '".$date."' as date from ^userpoints order by userid asc";
-				$result = qa_db_query_sub($insert);
-				$insert = "insert into ^monthlytoppers (date, userid, points) select '".$ldate."' as date, a.userid, a.points - COALESCE(b.points,0) AS mpoints from ^userscores a, ^userscores b where a.userid = b.userid and a.date = '".$date."' and b.date between (a.date - interval 35 day) and (a.date - interval 25 day)  group by a.userid,a.points,b.points  having mpoints>0";
-				$result = qa_db_query_sub($insert);
-
-				qa_opt("newmonth", "true");
-			}
-		}
-		else {
-			if(qa_opt("newmonth")!=="false")
-				qa_opt("newmonth", "false");
-		}
-
-
 		/* start */
 		$qa_content=qa_content_prepare();
 

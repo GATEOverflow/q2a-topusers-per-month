@@ -4,7 +4,7 @@ Question2Answer Top Users per Month/Week
 -----------
 Description
 -----------
-This is a plugin for **Question2Answer** that displays the top scoring users of the current month as well as week in two separate sidebar widgets and on a separate page
+This is a plugin for **Question2Answer** that displays the top scoring users of the current month as well as week in two separate sidebar widgets and on a separate page. This code was initially forked from https://github.com/q2apro/q2apro-best-users-per-month-free but changed mostly completely due to give better performance.
 
 
 ------------
