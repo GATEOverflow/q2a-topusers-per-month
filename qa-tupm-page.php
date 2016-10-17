@@ -7,6 +7,8 @@ class qa_tupm_page {
 		$queries = array();
 		$tablename=qa_db_add_table_prefix('monthlytoppers');
 		$new = false;
+		$tablename1=qa_db_add_table_prefix('userscores');
+		$tablename2=qa_db_add_table_prefix('userpoints');
 		if(!in_array($tablename, $tableslc)) {
 			$new = true;
 			$queries[] = "CREATE TABLE IF NOT EXISTS `".$tablename."` (
@@ -18,9 +20,8 @@ class qa_tupm_page {
 					)
 					";
 		}
-		$tablename1=qa_db_add_table_prefix('userscores');
-		if(!in_array($tablename, $tableslc)) {
-			return "CREATE TABLE IF NOT EXISTS `".$tablename1."` (
+		if(!in_array($tablename1, $tableslc)) {
+			$queries[] = "CREATE TABLE IF NOT EXISTS `".$tablename1."` (
 				`date` date NOT NULL,
 				`userid` int(10) unsigned NOT NULL,
 				`points` int(11) NOT NULL DEFAULT '0',
@@ -28,6 +29,7 @@ class qa_tupm_page {
 				KEY `date` (`date`)
 					)
 					";
+				$queries[] = "insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc";
 		}
 		else if($new){
 			$select = "select min(date) as date from ^userscores";
@@ -49,7 +51,6 @@ class qa_tupm_page {
 			} 
 		}
 		$events = qa_db_read_one_value(qa_db_query_raw("show events where name like 'tupmevent'"), true);
-		$tablename2=qa_db_add_table_prefix('userpoints');
 
 		if(!$events){
 			$queries[] = "CREATE EVENT if not exists tupmevent
@@ -64,9 +65,7 @@ class qa_tupm_page {
 		if(qa_opt('qa-tupm-weekly-enable'))
 		{
 			$tablename=qa_db_add_table_prefix('weeklytoppers');
-			$new = false;
 			if(!in_array($tablename, $tableslc)) {
-				$new = true;
 				$queries[] = "CREATE TABLE IF NOT EXISTS `".$tablename."` (
 					`date` date NOT NULL,
 					`userid` int(10) unsigned NOT NULL,
@@ -77,7 +76,7 @@ class qa_tupm_page {
 						";
 			}
 			$tablename1=qa_db_add_table_prefix('userscores_weekly');
-			if(!in_array($tablename, $tableslc)) {
+			if(!in_array($tablename1, $tableslc)) {
 				$queries[]= "CREATE TABLE IF NOT EXISTS `".$tablename1."` (
 					`date` date NOT NULL,
 					`userid` int(10) unsigned NOT NULL,
@@ -86,6 +85,7 @@ class qa_tupm_page {
 					KEY `date` (`date`)
 						)
 						";
+				$queries[] = "insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc";
 			}
 			$events = qa_db_read_one_value(qa_db_query_raw("show events where name like 'tupmweeklyevent'"), true);
 			if(!$events){
