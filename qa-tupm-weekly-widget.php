@@ -71,7 +71,7 @@ class qa_tupm_weekly_widget {
 		setlocale (LC_TIME, $localcode); 
 		$monthName = strftime("%B %G", strtotime( date('F')) ); // %B for full month name, %b for abbreviation
 		*/
-		$week = getStartAndEndDate(date('W')-1,date('Y'));
+		$week = getStartAndEndDate(date('W'),date('Y'));
 		$weekName = $week['week_start']." - ".$week['week_end']; 
 		
 		$themeobject->output('<div class="qa-widget-title tupm-title"><a href="'.qa_path('topusers').'">'.$langActUsers.'</a> <span class="qa-widget-span">'.$weekName.'</span></div>'); 

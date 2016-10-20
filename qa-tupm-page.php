@@ -54,7 +54,8 @@ class qa_tupm_page {
 
 		if(!$events){
 			$queries[] = "CREATE EVENT if not exists tupmevent
-				ON SCHEDULE EVERY 1 MONTH
+				ON SCHEDULE EVERY 1 MONTH 
+				starts	concat(str_to_date ( concat(concat(DATE_FORMAT(NOW(), '%Y'),month(NOW() + interval 1 month)),"1"), '%Y%m%d'), ' 00:00:00')
 				DO
 				BEGIN
 				insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc;
@@ -91,6 +92,7 @@ class qa_tupm_page {
 			if(!$events){
 				$queries[] = "CREATE EVENT if not exists tupmweeklyevent
 					ON SCHEDULE EVERY 1 WEEK
+					starts concat(str_to_date(concat(yearweek(NOW() + interval 1 week), 'Monday'), '%X%V %W'), ' 00:00:00')
 					DO
 					BEGIN
 					insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc;
