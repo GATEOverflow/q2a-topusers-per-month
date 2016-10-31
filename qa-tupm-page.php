@@ -50,10 +50,11 @@ class qa_tupm_page {
 
 			} 
 		}
-		$events = qa_db_read_one_value(qa_db_query_raw("show events where name like 'tupmevent'"), true);
+		$eventname=qa_db_add_table_prefix('tupmevent');
+		$events = qa_db_read_one_value(qa_db_query_raw("show events where name like '$eventname'"), true);
 
 		if(!$events){
-			$queries[] = "CREATE EVENT if not exists tupmevent
+			$queries[] = "CREATE EVENT if not exists $eventname
 				ON SCHEDULE EVERY 1 MONTH 
 				starts	concat(str_to_date ( concat(concat(DATE_FORMAT(NOW(), '%Y'),month(NOW() + interval 1 month)),\"1\"), '%Y%m%d'), ' 00:00:00')
 				DO
@@ -88,9 +89,10 @@ class qa_tupm_page {
 						";
 				$queries[] = "insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc";
 			}
-			$events = qa_db_read_one_value(qa_db_query_raw("show events where name like 'tupmweeklyevent'"), true);
+			$eventname=qa_db_add_table_prefix('tupmweeklyevent');
+			$events = qa_db_read_one_value(qa_db_query_raw("show events where name like '$eventname'"), true);
 			if(!$events){
-				$queries[] = "CREATE EVENT if not exists tupmweeklyevent
+				$queries[] = "CREATE EVENT if not exists $eventname
 					ON SCHEDULE EVERY 1 WEEK
 					starts concat(str_to_date(concat(yearweek(NOW() + interval 1 week), 'Monday'), '%X%V %W'), ' 00:00:00')
 					DO
