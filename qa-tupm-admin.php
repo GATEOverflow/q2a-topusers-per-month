@@ -27,11 +27,10 @@ float:left;
 	vertical-align:middle;
 }
 .topusers .uscore{
-font-family: Impact;
+font-family: arial;
 }
 .tupm-title {
     font-family: Arial;
-    font-size: large;
     font-weight: bold;
 margin-top: 10px;
 }
