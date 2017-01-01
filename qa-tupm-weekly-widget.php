@@ -29,7 +29,6 @@ class qa_tupm_weekly_widget {
 		$queryRecentScores = qa_db_query_sub("SELECT ^userpoints.userid, ^userpoints.points - COALESCE(^userscores_weekly.points,0) AS mpoints 
 								FROM `^userpoints`
 								LEFT JOIN `^userscores_weekly` on ^userpoints.userid=^userscores_weekly.userid
-									AND DATE_FORMAT(^userscores_weekly.date,'%Y') like '".date("Y")."' 
                                                                         AND DATE_FORMAT(^userscores_weekly.date,'%u') like '".date("W")."'  
 			
 								WHERE 
