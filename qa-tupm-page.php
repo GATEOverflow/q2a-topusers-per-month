@@ -56,7 +56,7 @@ class qa_tupm_page {
 		if(!$events){
 			$queries[] = "CREATE EVENT if not exists $eventname
 				ON SCHEDULE EVERY 1 MONTH 
-				starts	concat(str_to_date ( concat(concat(DATE_FORMAT(NOW(), '%Y'),month(NOW() + interval 1 month)),\"1\"), '%Y%m%d'), ' 00:00:00')
+				starts	concat(str_to_date ( concat(concat(DATE_FORMAT(NOW(), '%Y'),month(NOW() + interval 1 month)),\"-1\"), '%Y%m-%d'), ' 00:00:00')
 				DO
 				BEGIN
 				insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc;
