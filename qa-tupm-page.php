@@ -16,7 +16,8 @@ class qa_tupm_page {
 				`userid` int(10) unsigned NOT NULL,
 				`points` int(11) NOT NULL DEFAULT '0',
 				KEY `userid` (`userid`),
-				KEY `date` (`date`)
+				KEY `date` (`date`),
+				PRIMARY KEY(userid, date)
 					)
 					";
 		}
@@ -26,7 +27,8 @@ class qa_tupm_page {
 				`userid` int(10) unsigned NOT NULL,
 				`points` int(11) NOT NULL DEFAULT '0',
 				KEY `userid` (`userid`),
-				KEY `date` (`date`)
+				KEY `date` (`date`),
+				PRIMARY KEY(userid, date)
 					)
 					";
 				$queries[] = "insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc";
