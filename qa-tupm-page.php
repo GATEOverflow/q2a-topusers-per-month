@@ -31,7 +31,7 @@ class qa_tupm_page {
 				PRIMARY KEY(userid, date)
 					)
 					";
-				$queries[] = "insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc";
+			$queries[] = "insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc";
 		}
 		else if($new){
 			$select = "select min(date) as date from ^userscores";
@@ -51,6 +51,23 @@ class qa_tupm_page {
 				$mdate = strtotime($mindate); 
 
 			} 
+		}
+		if(qa_opt('qa-tupm-payout-enable'))
+		{
+			$eventname=qa_db_add_table_prefix('tupmevent_payout');
+			$events = qa_db_read_one_value(qa_db_query_raw("show events where name like '$eventname'"), true);
+
+			if(!$events){
+				$opttable = qa_db_add_table_prefix('options');
+				$queries[] = "CREATE EVENT if not exists $eventname
+					ON SCHEDULE EVERY 1 MONTH 
+					starts	concat(str_to_date ( concat(concat(DATE_FORMAT(NOW(), '%Y'),month(NOW() + interval 1 month)),\"-1\"), '%Y%m-%d'), ' 00:00:00')
+					DO
+					BEGIN
+					update $opttable set content = (select content from $opttable where title like 'monthly_verified_count') where title like 'last_monthly_verified_count';
+				update $opttable set content = '0' where title like 'monthly_verified_count';
+				END";
+			}
 		}
 		$eventname=qa_db_add_table_prefix('tupmevent');
 		$events = qa_db_read_one_value(qa_db_query_raw("show events where name like '$eventname'"), true);
@@ -153,8 +170,15 @@ class qa_tupm_page {
 		$lang_top_users = qa_lang_html('qa_tupm_lang/top_users');
 		$pointsLang =  qa_lang_html('qa_tupm_lang/points');
 
+
 		if($showReward){
-			$showRewardOnTop = '<p>' .qa_opt('qa-tupm-reward-html') . "</p>";
+$rewardHtml = qa_opt('qa-tupm-reward-html');
+$count = qa_opt('monthly_verified_count');
+                $total_pay = $count * 750;
+                $factor = qa_opt('verifyplus_monthly_factor');
+                $monthly_pay = $factor * $total_pay;
+                $rewardHtml = str_replace("[monthly_budget]",$monthly_pay, $rewardHtml);
+			$showRewardOnTop = '<p>' .$rewardHtml . "</p>";
 		}
 
 

@@ -20,16 +20,16 @@ class qa_tupm_weekly_widget {
 	$hidepoints = qa_opt('qa-tupm-weekly-hide-points');	
 		$langActUsers = qa_lang_html('qa_tupm_lang/top_users');
 		$pointsLang = qa_lang_html('qa_tupm_lang/points'); 			
-		$rewardHtml = qa_opt('qa-tupm-reward-html');
+		$rewardHtml = qa_opt('qa-tupm-weekly-reward-html');
 		$suffix = " ^userpoints.userid not in (select userid from ^users where flags & ".QA_USER_FLAGS_USER_BLOCKED." = 1";
 		if($hideadmin){
 			$suffix .=" or level >= ".QA_USER_LEVEL_ADMIN;
 		}
-		$suffix .=")";
+		$suffix .=") and ^userpoints.points > ".qa_opt('points_base') ;
 		$queryRecentScores = qa_db_query_sub("SELECT ^userpoints.userid, ^userpoints.points - COALESCE(^userscores_weekly.points,0) AS mpoints 
 								FROM `^userpoints`
 								LEFT JOIN `^userscores_weekly` on ^userpoints.userid=^userscores_weekly.userid
-                                                                        AND DATE_FORMAT(^userscores_weekly.date,'%u') like '".date("W")."'  
+                                                                        AND ^userscores_weekly.date = (select max(date) from ^userscores_weekly)   
 			
 								WHERE 
 								".$suffix.

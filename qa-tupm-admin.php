@@ -56,6 +56,8 @@ margin-bottom: 10px;
 				return '';
 			case 'qa-tupm-reward-enable':
 				return '';
+			case 'qa-tupm-payout-enable':
+				return '';
 			case 'qa-tupm-reward-html':
 				return '200 points';
 			case 'qa-tupm-weekly-enable':
@@ -143,6 +145,12 @@ margin-bottom: 10px;
 				'label' => 'Enable Rewards',
 				'tags' => 'NAME="qa-tupm-reward-enable"',
 				'value' => qa_opt('qa-tupm-reward-enable'),
+				'type' => 'checkbox',
+				);
+		$fields[] = array(
+				'label' => 'Enable Payouts',
+				'tags' => 'NAME="qa-tupm-payout-enable"',
+				'value' => qa_opt('qa-tupm-payout-enable'),
 				'type' => 'checkbox',
 				);
 		$fields[] = array(
