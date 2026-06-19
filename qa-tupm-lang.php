@@ -11,7 +11,7 @@
 		'reward_title' => 'Learn and contribute to get the rewards!',
 		
 		// on page only
-		'page_title' => 'Top Users of the month (Top 20)',
+		'page_title' => 'Top Users of the month',
 		'choose_month' => 'Choose month:', 
 		
 		// subnavigation on all users page

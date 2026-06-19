@@ -22,7 +22,8 @@ class qa_html_theme_layer extends qa_html_theme_base
 	function head_custom()
         {
                 qa_html_theme_base::head_custom();
-                $this->output('<style type="text/css">'.qa_opt('tupm-plugin-css').'</style>');
+                // Strip </style to prevent CSS injection (fix: stored XSS)
+                $this->output('<style type="text/css">'.str_ireplace('</style', '', qa_opt('tupm-plugin-css')).'</style>');
         }
 
 

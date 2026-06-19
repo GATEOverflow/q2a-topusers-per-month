@@ -35,21 +35,30 @@ class qa_tupm_widget {
 		{
 		$rewardHtml = "";//str_replace("[monthly_budget]","", $rewardHtml);	
 		}
-		$basepoints = qa_opt('points_base');
-	    	$suffix = "^userpoints.points > $basepoints and ^userpoints.userid not in (select userid from ^users where flags & ".QA_USER_FLAGS_USER_BLOCKED." = 1";
+		$basepoints = (int)qa_opt('points_base');
+		$activedays = max(1, (int)qa_opt('qa-tupm-active-days'));
+		$suffix = "^userpoints.points > $basepoints and ^userpoints.userid not in (select userid from ^users where flags & ".QA_USER_FLAGS_USER_BLOCKED." = 1";
 		if($hideadmin){
-			$suffix .=" or level >= ".QA_USER_LEVEL_MODERATOR;
+			$suffix .=" or level >= ".QA_USER_LEVEL_ADMIN;
 		}
 		$suffix .=")";
-		$queryRecentScores = qa_db_query_sub("SELECT ^userpoints.userid, ^userpoints.points - COALESCE(^userscores.points,0) AS mpoints 
+		// P2: range filter lets MySQL use the index on ^userscores.date
+		$monthStart = date('Y-m-01');
+		$monthEnd   = date('Y-m-01', strtotime('+1 month'));
+		// P1: SELECT display fields from ^users in one query — no per-user round-trip
+		$avatarSize = (int)qa_opt('avatar_users_size');
+		$queryRecentScores = qa_db_query_sub("SELECT ^userpoints.userid,
+								^userpoints.points - COALESCE(^userscores.points,0) AS mpoints,
+								^users.flags, ^users.email, ^users.handle,
+								^users.avatarblobid, ^users.avatarwidth, ^users.avatarheight
 								FROM `^userpoints`
-								LEFT JOIN `^userscores` on ^userpoints.userid=^userscores.userid
-									AND DATE_FORMAT(^userscores.date,'%Y') like '".date("Y")."' 
-                                                                        AND DATE_FORMAT(^userscores.date,'%m') like '".date("m")."'  
-			join ^users on ^users.userid=^userpoints.userid where ^users.loggedin > NOW() - interval 30 day
-								and
-								".$suffix.
-								" ORDER BY mpoints DESC, ^userpoints.userid DESC limit ".$maxusers.";"
+								LEFT JOIN `^userscores` ON ^userpoints.userid=^userscores.userid
+									AND ^userscores.date >= '$monthStart'
+									AND ^userscores.date < '$monthEnd'
+								JOIN ^users ON ^users.userid=^userpoints.userid
+								WHERE ^users.loggedin > NOW() - interval $activedays day
+								AND ".$suffix.
+								" ORDER BY mpoints DESC, ^userpoints.userid DESC LIMIT ".$maxusers.";"
 								);
 		
 		// save all userscores in array $scores
@@ -59,18 +68,16 @@ class qa_tupm_widget {
 		}
 
 		$topusers = "<ol>";
-		$nrUsers = 0;
 		
 		foreach ($scores as $user) {
 			// no users with 0 points
-			$userId = $user['userid'];
 			$val = $user['mpoints'];
 			if($val>0) 
 			{
-				$user = qa_db_select_with_pending( qa_db_user_account_selectspec($userId, true) );
-					$topusers .= "<li>" . qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], qa_opt('avatar_users_size'), true) . "<span class=\"topusers-span\">" . qa_get_one_user_html($user['handle'], false);
-				 if(!$hidepoints)
-                                        $topusers .=' <p class="uscore">'.$val.' '.$pointsLang.'</p></span></li>
+				// P1: display fields already in $user — no extra DB call needed
+				$topusers .= "<li>" . qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], $avatarSize, true) . "<span class=\"topusers-span\">" . qa_get_one_user_html($user['handle'], false);
+				if(!$hidepoints)
+					$topusers .=' <p class="uscore">'.$val.' '.$pointsLang.'</p></span></li>
 					';
 			}
 		}
