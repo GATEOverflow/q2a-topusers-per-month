@@ -426,6 +426,7 @@ class qa_tupm_page {
 
 		// ── Initialise Q2A page ───────────────────────────────────────────────
 		$qa_content = qa_content_prepare();
+		$qa_content['description'] = 'Top contributors on GATE Overflow each month, ranked by points earned from questions, answers and votes.';
 		$qa_content['navigation']['sub'] = qa_users_sub_navigation();
 		$qa_content['title']             = qa_lang_html('qa_tupm_lang/page_title') . ' (Top ' . $maxusers . ')';
 
