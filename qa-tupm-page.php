@@ -17,6 +17,8 @@ class qa_tupm_page {
 			$queries[] = 'CREATE TABLE IF NOT EXISTS ^tupm_daily (day DATE NOT NULL, userid INT UNSIGNED NOT NULL, points INT NOT NULL, PRIMARY KEY (day, userid)) ENGINE=InnoDB';
 		}
 		$indexes = array(
+			'monthlytoppers' => array('tupm_date_points' => 'date, points'),
+			'weeklytoppers' => array('tupm_date_points' => 'date, points'),
 			'pupi_pc_history' => array('tupm_formula_time' => 'formula, event_time, user_id, point_sign'),
 			'exam_results' => array('tupm_datetime' => 'datetime, userid, examid', 'tupm_user_exam_time' => 'userid, examid, datetime'),
 			'uservotes' => array('tupm_created' => 'votecreated, postid, vote'),
