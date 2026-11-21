@@ -16,6 +16,8 @@ qa_register_plugin_phrases('qa-tupm-lang.php', 'qa_tupm_lang');
 
 qa_register_plugin_layer('qa-tupm-layer.php', 'Top Users Layer');
 
+require_once __DIR__ . '/qa-tupm-points.php';
+
 
 function getStartAndEndDate($week, $year) {
   $dto = new DateTime();

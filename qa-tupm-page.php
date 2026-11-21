@@ -2,55 +2,35 @@
 
 class qa_tupm_page {
 
-	// initialize db-table 'userscores' if it does not exist yet
+	// Tables for frozen period results and the derived-points cache, plus indexes the period queries rely on
 	function init_queries($tableslc) {
 		$queries = array();
-		$tablename=qa_db_add_table_prefix('monthlytoppers');
-		$new = false;
-		$tablename1=qa_db_add_table_prefix('userscores');
-		$tablename2=qa_db_add_table_prefix('userpoints');
-		if(!in_array($tablename, $tableslc)) {
-			$new = true;
-			$queries[] = "CREATE TABLE IF NOT EXISTS `".$tablename."` (
-				`date` date NOT NULL,
-				`userid` int(10) unsigned NOT NULL,
-				`points` int(11) NOT NULL DEFAULT '0',
-				KEY `userid` (`userid`),
-				KEY `date` (`date`),
-				PRIMARY KEY(userid, date)
-					)
-					";
+		foreach (array('monthlytoppers', 'weeklytoppers') as $t) {
+			if (!in_array(qa_db_add_table_prefix($t), $tableslc)) {
+				$queries[] = 'CREATE TABLE IF NOT EXISTS ^' . $t . ' (`date` date NOT NULL, `userid` int(10) unsigned NOT NULL, `points` int(11) NOT NULL DEFAULT 0, PRIMARY KEY (userid, date), KEY `date` (`date`)) ENGINE=InnoDB';
+			}
 		}
-		if(!in_array($tablename1, $tableslc)) {
-			$queries[] = "CREATE TABLE IF NOT EXISTS `".$tablename1."` (
-				`date` date NOT NULL,
-				`userid` int(10) unsigned NOT NULL,
-				`points` int(11) NOT NULL DEFAULT '0',
-				KEY `userid` (`userid`),
-				KEY `date` (`date`),
-				PRIMARY KEY(userid, date)
-					)
-					";
-			$queries[] = "insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc";
+		if (!in_array(qa_db_add_table_prefix('tupm_cache'), $tableslc)) {
+			$queries[] = 'CREATE TABLE IF NOT EXISTS ^tupm_cache (ckey VARCHAR(32) NOT NULL PRIMARY KEY, computed DATETIME NOT NULL, data MEDIUMTEXT NOT NULL) ENGINE=InnoDB CHARSET=utf8mb4';
 		}
-		else if($new){
-			$select = "select min(date) as date from ^userscores";
-			$result = qa_db_query_sub($select);
-			$mindate = qa_db_read_one_value($result);
-			$mdate = strtotime($mindate); 
-			$select = "select max(date) as date from ^userscores";
-			$result = qa_db_query_sub($select);
-			$maxdate = qa_db_read_one_value($result);
-			$mxdate = strtotime($maxdate);
-			while($mdate < $mxdate){
-				$insert = "insert into ".$tablename." (date, userid, points) select a.date, a.userid, b.points - COALESCE(a.points,0) AS mpoints from ".$tablename1." a, ".$tablename1." b where a.userid = b.userid and a.date = '".date("Y-m-d", $mdate)."' and b.date between (a.date + interval 1 day) and (a.date + interval 59 day)  group by a.userid,a.points,b.points  having mpoints>0";
-				$queries[] = $insert;
-				$select = "select min(date) as date from ^userscores where date > '".date("Y-m-d", $mdate)."'";
-				$result = qa_db_query_sub($select);
-				$mindate = qa_db_read_one_value($result);
-				$mdate = strtotime($mindate); 
-
-			} 
+		if (!in_array(qa_db_add_table_prefix('tupm_daily'), $tableslc)) {
+			$queries[] = 'CREATE TABLE IF NOT EXISTS ^tupm_daily (day DATE NOT NULL, userid INT UNSIGNED NOT NULL, points INT NOT NULL, PRIMARY KEY (day, userid)) ENGINE=InnoDB';
+		}
+		$indexes = array(
+			'pupi_pc_history' => array('tupm_formula_time' => 'formula, event_time, user_id, point_sign'),
+			'exam_results' => array('tupm_datetime' => 'datetime, userid, examid', 'tupm_user_exam_time' => 'userid, examid, datetime'),
+			'uservotes' => array('tupm_created' => 'votecreated, postid, vote'),
+		);
+		foreach ($indexes as $t => $list) {
+			if (!in_array(qa_db_add_table_prefix($t), $tableslc)) {
+				continue;
+			}
+			$have = qa_db_read_all_values(qa_db_query_sub('SELECT DISTINCT index_name FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = $', qa_db_add_table_prefix($t)));
+			foreach ($list as $name => $cols) {
+				if (!in_array($name, $have)) {
+					$queries[] = 'ALTER TABLE ^' . $t . ' ADD INDEX ' . $name . ' (' . $cols . '), ALGORITHM=INPLACE, LOCK=NONE';
+				}
+			}
 		}
 		if(qa_opt('qa-tupm-payout-enable'))
 		{
@@ -67,59 +47,6 @@ class qa_tupm_page {
 					update $opttable set content = (select content from $opttable where title like 'monthly_verified_count') where title like 'last_monthly_verified_count';
 				update $opttable set content = '0' where title like 'monthly_verified_count';
 				END";
-			}
-		}
-		$eventname=qa_db_add_table_prefix('tupmevent');
-		$events = qa_db_read_one_value(qa_db_query_raw("show events where name like '$eventname'"), true);
-
-		if(!$events){
-			$queries[] = "CREATE EVENT if not exists $eventname
-				ON SCHEDULE EVERY 1 MONTH 
-				starts	concat(str_to_date ( concat(concat(DATE_FORMAT(NOW(), '%Y'),month(NOW() + interval 1 month)),\"-1\"), '%Y%m-%d'), ' 00:00:00')
-				DO
-				BEGIN
-				insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc;
-			insert into ".$tablename." (date, userid, points) select CURDATE() - interval 1 month as date, a.userid, a.points - COALESCE(b.points,0) AS mpoints from ".$tablename1." a, ".$tablename1." b where a.userid = b.userid and a.date = CURDATE() and b.date between (a.date - interval 35 day) and (a.date - interval 25 day)  group by a.userid,a.points,b.points  having mpoints>0;
-
-			END ";
-		}
-		if(qa_opt('qa-tupm-weekly-enable'))
-		{
-			$tablename=qa_db_add_table_prefix('weeklytoppers');
-			if(!in_array($tablename, $tableslc)) {
-				$queries[] = "CREATE TABLE IF NOT EXISTS `".$tablename."` (
-					`date` date NOT NULL,
-					`userid` int(10) unsigned NOT NULL,
-					`points` int(11) NOT NULL DEFAULT '0',
-					KEY `userid` (`userid`),
-					KEY `date` (`date`)
-						)
-						";
-			}
-			$tablename1=qa_db_add_table_prefix('userscores_weekly');
-			if(!in_array($tablename1, $tableslc)) {
-				$queries[]= "CREATE TABLE IF NOT EXISTS `".$tablename1."` (
-					`date` date NOT NULL,
-					`userid` int(10) unsigned NOT NULL,
-					`points` int(11) NOT NULL DEFAULT '0',
-					KEY `userid` (`userid`),
-					KEY `date` (`date`)
-						)
-						";
-				$queries[] = "insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc";
-			}
-			$eventname=qa_db_add_table_prefix('tupmweeklyevent');
-			$events = qa_db_read_one_value(qa_db_query_raw("show events where name like '$eventname'"), true);
-			if(!$events){
-				$queries[] = "CREATE EVENT if not exists $eventname
-					ON SCHEDULE EVERY 1 WEEK
-					starts concat(str_to_date(concat(yearweek(NOW() + interval 1 week), 'Monday'), '%X%V %W'), ' 00:00:00')
-					DO
-					BEGIN
-					insert into  ".$tablename1." (userid, points, date) select userid, points, CURDATE() as date from ".$tablename2." order by userid asc;
-				insert into ".$tablename." (date, userid, points) select CURDATE() - interval 1 week as date, a.userid, a.points - COALESCE(b.points,0) AS mpoints from ".$tablename1." a, ".$tablename1." b where a.userid = b.userid and a.date = CURDATE() and b.date between (a.date - interval 10 day) and (a.date - interval 4 day)  group by a.userid,a.points,b.points  having mpoints>0;
-
-				END ";
 			}
 		}
 		return $queries;
@@ -237,14 +164,10 @@ class qa_tupm_page {
 
 
 
-		/* start */
-		// ── Resolve first available snapshot date ────────────────────────────
-		$lastListDate  = date('Y-m-01');
-		$firstListDate = '2012-10-01';
-		$qfd = qa_db_query_sub('SELECT `date` FROM `^userscores` ORDER BY `date` ASC LIMIT 1');
-		$fdr = qa_db_read_one_assoc($qfd, true);
-		if ($fdr) $firstListDate = $fdr['date'];
-		$firstListDate = date('Y-m-01', strtotime($firstListDate . ' -1 month'));
+		// ── Month range: from the first frozen month to the current local month ─
+		$lastListDate  = qa_tupm_points::monthStart();
+		$firstListDate = qa_db_read_one_value(qa_db_query_sub('SELECT MIN(`date`) FROM `^monthlytoppers`'), true);
+		$firstListDate = $firstListDate ? date('Y-m-01', strtotime($firstListDate)) : $lastListDate;
 
 		// ── Resolve chosen month from GET ─────────────────────────────────────
 		$chosenMonth = $lastListDate;
@@ -265,60 +188,12 @@ class qa_tupm_page {
 		$hasPrev        = ($prevMonth >= $firstListDate);
 		$hasNext        = !$isCurrentMonth;
 
-		// ── User exclusion clause ─────────────────────────────────────────────
-		$excl = 'not in (select userid from ^users where flags & ' . QA_USER_FLAGS_USER_BLOCKED . ' = 1';
-		if ($hideadmin) $excl .= ' or level >= ' . QA_USER_LEVEL_ADMIN;
-		$excl .= ')';
-
-		// ── Monthly scores ────────────────────────────────────────────────────
-		$fetchLimit = ($maxusers + 1); // fetch one extra to detect next page
-		if ($isCurrentMonth) {
-			// Current month: live delta = userpoints − snapshot at month start
-			$snapRes  = qa_db_query_sub("SELECT MAX(`date`) AS d FROM `^userscores` WHERE `date` >= '$intervalStart' AND `date` < '$intervalEnd'");
-			$snapRow  = qa_db_read_one_assoc($snapRes, true);
-			$snapDate = ($snapRow && $snapRow['d']) ? $snapRow['d'] : null;
-			$jc       = $snapDate ? "us.date = '$snapDate'" : '1=0';
-			$qMonth   = qa_db_query_sub(
-				"SELECT up.userid, up.points - COALESCE(us.points, 0) AS mpoints
-				 FROM `^userpoints` up
-				 LEFT JOIN `^userscores` us ON up.userid = us.userid AND $jc
-				 WHERE up.userid $excl
-				 HAVING mpoints > 0
-				 ORDER BY mpoints DESC
-				 LIMIT $fetchLimit OFFSET $offset"
-			);
-		} else {
-			// Past month: prefer qa_monthlytoppers (pre-computed by Event Scheduler / seed).
-			// Fall back to live snapshot delta from qa_userscores if monthlytoppers has no
-			// data for this month (e.g. before the cron ever ran for it).
-			$chk    = qa_db_query_sub("SELECT COUNT(*) AS cnt FROM `^monthlytoppers` WHERE `date` = '$intervalStart'");
-			$chkRow = qa_db_read_one_assoc($chk, true);
-			if ($chkRow && (int)$chkRow['cnt'] > 0) {
-				// Use monthlytoppers – changes here are immediately reflected
-				$qMonth = qa_db_query_sub(
-					"SELECT mt.userid, mt.points AS mpoints
-					 FROM `^monthlytoppers` mt
-					 WHERE mt.date = '$intervalStart' AND mt.userid $excl
-					 ORDER BY mpoints DESC
-					 LIMIT $fetchLimit OFFSET $offset"
-				);
-			} else {
-				// Fallback: compute delta from two consecutive userscores snapshots
-				$qMonth = qa_db_query_sub(
-					"SELECT us1.userid, us1.points - COALESCE(us2.points, 0) AS mpoints
-					 FROM `^userscores` us1
-					 LEFT JOIN (SELECT userid, points FROM `^userscores` WHERE `date` = '$intervalStart') AS us2
-					   ON us1.userid = us2.userid
-					 WHERE us1.date = '$intervalEnd' AND us1.userid $excl
-					 HAVING mpoints > 0
-					 ORDER BY mpoints DESC
-					 LIMIT $fetchLimit OFFSET $offset"
-				);
-			}
-		}
+		// ── Monthly scores (fetch one extra to detect a next page) ───────────
+		$userCache     = array();
 		$monthlyScores = array();
-		while (($row = qa_db_read_one_assoc($qMonth, true)) !== null) {
-			$monthlyScores[] = $row;
+		foreach (qa_tupm_points::ranked('month', $chosenMonth, $maxusers + 1, $offset, $hideadmin) as $u) {
+			$userCache[$u['userid']] = $u;
+			$monthlyScores[] = array('userid' => $u['userid'], 'mpoints' => $u['points']);
 		}
 		$hasNextPage = count($monthlyScores) > $maxusers;
 		if ($hasNextPage) array_pop($monthlyScores);
@@ -326,102 +201,25 @@ class qa_tupm_page {
 		// ── Weekly sections – all weeks whose Monday falls in the chosen month ─
 		$weekSections = array();
 		if ($weeklyEnabled) {
-			// R3: true current Monday — date('N') = 1 (Mon) … 7 (Sun)
-			$pdow    = (int)date('N');
-			$trueMon = $isCurrentMonth ? date('Y-m-d', strtotime('-' . ($pdow - 1) . ' days')) : null;
-
-			// Fetch snapshot dates in a window around the month
-			$rangeStart = date('Y-m-d', strtotime($intervalStart . ' -7 days'));
-			$rangeEnd   = date('Y-m-d', strtotime($intervalEnd   . ' +7 days'));
-			$qSnap = qa_db_query_sub(
-				"SELECT DISTINCT `date` FROM `^userscores_weekly`
-				 WHERE `date` >= '$rangeStart' AND `date` <= '$rangeEnd'
-				 ORDER BY `date` ASC"
-			);
-			$snapDates = array();
-			while (($row = qa_db_read_one_assoc($qSnap, true)) !== null) {
-				$snapDates[] = $row['date'];
-			}
-
+			$thisWeek = qa_tupm_points::weekStart();
+			$wStart   = date('Y-m-d', strtotime('monday this week', strtotime($intervalStart)));
+			if ($wStart < $intervalStart) $wStart = date('Y-m-d', strtotime($wStart . ' +7 days'));
 			$wnum = 0;
-			$cnt  = count($snapDates);
-			for ($i = 0; $i < $cnt; $i++) {
-				$wStart = $snapDates[$i];
-				if ($wStart < $intervalStart || $wStart >= $intervalEnd) continue;
+			for (; $wStart < $intervalEnd && $wStart <= $thisWeek; $wStart = date('Y-m-d', strtotime($wStart . ' +7 days'))) {
 				$wnum++;
-				$wEnd   = isset($snapDates[$i + 1]) ? $snapDates[$i + 1] : null;
-				$wEndDt = date('Y-m-d', strtotime($wStart . ' +6 days'));
-				$wLabel = date('M j', strtotime($wStart)) . ' &ndash; ' . date('M j', strtotime($wEndDt));
-
-				// R3: distinguish truly-ongoing vs stale-last-snapshot (scheduler missed a Monday)
-				$isCurrent = ($wEnd === null && $trueMon !== null && $wStart === $trueMon);
-				$isMissed  = ($wEnd === null && (!$isCurrent)); // last snap but NOT this week's Mon
-
-				if ($isCurrent || $isMissed) {
-					// Live delta from this snapshot to now (may span >1 week if missed)
-					$qWeek = qa_db_query_sub(
-						"SELECT up.userid, up.points - COALESCE(ws.points, 0) AS wpoints
-						 FROM `^userpoints` up
-						 LEFT JOIN `^userscores_weekly` ws ON up.userid = ws.userid AND ws.date = '$wStart'
-						 JOIN `^users` u ON u.userid = up.userid
-						 WHERE u.loggedin > NOW() - interval $activedays day
-						   AND up.userid $excl
-						 HAVING wpoints > 0
-						 ORDER BY wpoints DESC
-						 LIMIT $wMaxusers"
-					);
-				} else {
-					// Past week: clean delta between two consecutive snapshots
-					$qWeek = qa_db_query_sub(
-						"SELECT ws1.userid, ws1.points - COALESCE(ws2.points, 0) AS wpoints
-						 FROM `^userscores_weekly` ws1
-						 LEFT JOIN `^userscores_weekly` ws2
-						   ON ws1.userid = ws2.userid AND ws2.date = '$wStart'
-						 WHERE ws1.date = '$wEnd' AND ws1.userid $excl
-						 HAVING wpoints > 0
-						 ORDER BY wpoints DESC
-						 LIMIT $wMaxusers"
-					);
-				}
-				$wScores = array();
-				while (($row = qa_db_read_one_assoc($qWeek, true)) !== null) {
-					$wScores[] = $row;
+				$isCurrent = ($wStart === $thisWeek);
+				$wScores   = array();
+				foreach (qa_tupm_points::ranked('week', $wStart, $wMaxusers, 0, $hideadmin, $isCurrent ? $activedays : 0) as $u) {
+					$userCache[$u['userid']] = $u;
+					$wScores[] = array('userid' => $u['userid'], 'wpoints' => $u['points']);
 				}
 				$weekSections[] = array(
 					'num'     => $wnum,
-					'label'   => $wLabel,
+					'label'   => date('M j', strtotime($wStart)) . ' &ndash; ' . date('M j', strtotime($wStart . ' +6 days')),
 					'current' => $isCurrent,
-					'missed'  => $isMissed,
 					'scores'  => $wScores,
 				);
 			}
-
-			// R3: if the true current Monday is in this month but has no snapshot at all,
-			// add a placeholder card so the admin knows data is missing for this week.
-			if ($trueMon !== null && $trueMon >= $intervalStart && $trueMon < $intervalEnd
-					&& !in_array($trueMon, $snapDates)) {
-				$wnum++;
-				$wEndDt = date('Y-m-d', strtotime($trueMon . ' +6 days'));
-				$weekSections[] = array(
-					'num'    => $wnum,
-					'label'  => date('M j', strtotime($trueMon)) . ' &ndash; ' . date('M j', strtotime($wEndDt)),
-					'current' => false,
-					'missed'  => true,
-					'nosnap'  => true,
-					'scores'  => array(),
-				);
-			}
-		}
-
-		// ── Batch-fetch user accounts (deduplicated) ──────────────────────────
-		$allIds = array();
-		foreach ($monthlyScores as $s) $allIds[] = $s['userid'];
-		foreach ($weekSections   as $ws) {
-			foreach ($ws['scores'] as $s) $allIds[] = $s['userid'];
-		}
-		$userCache = array();
-		foreach (array_unique($allIds) as $uid) {
-			$userCache[$uid] = qa_db_select_with_pending(qa_db_user_account_selectspec((int)$uid, true));
 		}
 
 		// ── Initialise Q2A page ───────────────────────────────────────────────
@@ -540,28 +338,13 @@ class qa_tupm_page {
 			$html .= '<div class="tupm-section">';
 			$html .= '<div class="tupm-section-hdr wk">&#128197; Weekly Breakdown &mdash; ' . $monthName . '</div>';
 			if (empty($weekSections)) {
-				$html .= '<p class="tupm-empty">No weekly snapshot data available for this month.</p>';
+				$html .= '<p class="tupm-empty">No weekly data available for this month.</p>';
 			} else {
 				$html .= '<div class="tupm-weeks-grid">';
 				foreach ($weekSections as $ws) {
-					if ($ws['current']) {
-						$tcls      = 'tupm-week-title cur';
-						$curSuffix = ' <small style="font-weight:400;opacity:.8">(ongoing)</small>';
-					} elseif (!empty($ws['nosnap'])) {
-						// R3: true current week but scheduler never took the Monday snapshot
-						$tcls      = 'tupm-week-title missed';
-						$curSuffix = ' <small>&#9888; snapshot missing</small>';
-					} elseif (!empty($ws['missed'])) {
-						// R3: last known snapshot but scheduler missed the next Monday
-						$tcls      = 'tupm-week-title missed';
-						$curSuffix = ' <small>&#9888; spans multiple weeks (next snapshot missed)</small>';
-					} else {
-						$tcls      = 'tupm-week-title';
-						$curSuffix = '';
-					}
-					$body = !empty($ws['nosnap'])
-						? '<p class="tupm-week-empty">No baseline snapshot &mdash; use Admin &rarr; Take Weekly Snapshot to fix.</p>'
-						: $this->tupm_rank_list($ws['scores'], 'wpoints', $hidepoints, $pointsLang, $userCache, $avatarSize, true);
+					$tcls      = $ws['current'] ? 'tupm-week-title cur' : 'tupm-week-title';
+					$curSuffix = $ws['current'] ? ' <small style="font-weight:400;opacity:.8">(ongoing)</small>' : '';
+					$body      = $this->tupm_rank_list($ws['scores'], 'wpoints', $hidepoints, $pointsLang, $userCache, $avatarSize, true);
 					$html .= '<div class="tupm-week-card">'
 					       . '<div class="' . $tcls . '">Week&nbsp;' . $ws['num'] . ' &middot; ' . $ws['label'] . $curSuffix . '</div>'
 					       . '<div class="tupm-week-body">' . $body . '</div>'
